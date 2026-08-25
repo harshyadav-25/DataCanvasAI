@@ -1,4 +1,4 @@
-from fastapi.testclient import TestClient
+﻿from fastapi.testclient import TestClient
 
 from app.main import app
 
@@ -33,3 +33,117 @@ def test_upload_valid_csv():
         "Salary",
         "City"
     ]
+
+
+def test_upload_file_too_large():
+    large_content = b"x" * (25 * 1024 * 1024 + 1)
+
+    response = client.post(
+        "/upload",
+        files={
+            "file": (
+                "large_dataset.csv",
+                large_content,
+                "text/csv"
+            )
+        }
+    )
+
+    assert response.status_code == 413
+
+    data = response.json()
+
+    assert data["error"]["code"] == "DATASET_TOO_LARGE"
+    assert data["error"]["message"] == (
+        "Uploaded file exceeds the maximum allowed size of 25 MB."
+    )
+
+
+def test_upload_unsupported_file_format():
+    response = client.post(
+        "/upload",
+        files={
+            "file": (
+                "test_dataset.pdf",
+                b"fake pdf content",
+                "application/pdf"
+            )
+        }
+    )
+
+    assert response.status_code == 415
+
+    data = response.json()
+
+    assert data["error"]["code"] == "UNSUPPORTED_FILE_TYPE"
+    assert "Unsupported file format" in data["error"]["message"]
+
+
+def test_upload_dataset_with_duplicate_columns():
+    csv_content = (
+        "Name,Age,Age\n"
+        "Harsh,21,45000\n"
+        "Rahul,22,50000\n"
+    ).encode()
+
+    response = client.post(
+        "/upload",
+        files={
+            "file": (
+                "duplicate_columns.csv",
+                csv_content,
+                "text/csv"
+            )
+        }
+    )
+
+    assert response.status_code == 400
+
+    data = response.json()
+
+    assert data["error"]["code"] == "DATASET_VALIDATION_ERROR"
+    assert "Duplicate column names found" in data["error"]["message"]
+
+def test_upload_empty_dataset():
+    response = client.post(
+        "/upload",
+        files={
+            "file": (
+                "empty_dataset.csv",
+                b"",
+                "text/csv"
+            )
+        }
+    )
+
+    assert response.status_code == 400
+
+    data = response.json()
+
+    assert data["error"]["code"] == "EMPTY_DATASET"
+    assert "uploaded dataset is empty" in data["error"]["message"].lower()
+
+def test_upload_malformed_csv():
+    malformed_csv = (
+        "Name,Age,Salary\n"
+        '"Harsh,21,45000\n'
+        "Rahul,22,50000\n"
+    ).encode()
+
+    response = client.post(
+        "/upload",
+        files={
+            "file": (
+                "malformed.csv",
+                malformed_csv,
+                "text/csv"
+            )
+        }
+    )
+
+    assert response.status_code == 400
+
+    data = response.json()
+
+    assert data["error"]["code"] == "DATASET_READ_ERROR"
+    assert "Unable to read dataset" in data["error"]["message"]

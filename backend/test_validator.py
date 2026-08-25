@@ -1,7 +1,9 @@
-import pandas as pd
+﻿import pandas as pd
 import pytest
 
+
 from app.services.dataset_validator import validate_dataset
+from app.exceptions.dataset import DatasetValidationError
 
 
 def test_valid_dataset():
@@ -26,7 +28,8 @@ def test_duplicate_columns():
     )
 
     with pytest.raises(
-        ValueError,
+        DatasetValidationError,
         match="Duplicate column names found",
     ):
+
         validate_dataset(dataframe)

@@ -3,6 +3,10 @@ from pathlib import Path
 import pytest
 
 from app.services.dataset_loader import load_dataset
+from app.exceptions.dataset import (
+    UnsupportedFileTypeError,
+    EmptyDatasetError,
+)
 
 
 SAMPLE_DIR = Path("../datasets/sample")
@@ -26,7 +30,7 @@ def test_load_valid_csv():
 
 
 def test_reject_unsupported_file_format():
-    with pytest.raises(ValueError, match="Unsupported file format"):
+    with pytest.raises(UnsupportedFileTypeError, match="Unsupported file format"):
         load_dataset(
             file_content=b"fake pdf content",
             filename="test_dataset.pdf",
@@ -37,7 +41,7 @@ def test_reject_empty_dataset():
     empty_file = SAMPLE_DIR / "empty_dataset.csv"
 
     with pytest.raises(
-        ValueError,
+        EmptyDatasetError,
         match="The uploaded dataset is empty",
     ):
         load_dataset(
