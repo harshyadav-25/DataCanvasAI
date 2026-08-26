@@ -39,31 +39,46 @@ Phase 2.5 — Engineering Hardening
         ✅ 2.5.1 Upload Security
         ✅ 2.5.2 HTTP Error Handling
         ✅ 2.5.3 Standard Error Architecture
+        ✅ 2.5.4 Edge-Case Audit
 
-Phase 2.5.4 — Edge-Case Audit
-        ⏭ NEXT
+Phase 2.5.5 — Dataset Lifecycle
+        ⏳ NEXT
+
+Phase 2.5.6 — Original Data Immutability
+        ⏳ PLANNED
+
+Phase 2.5.7 — API Organization
+        ⏳ PLANNED
+
+Phase 2.5.8 — Configuration
+        ⏳ PLANNED
+
+Phase 2.5.9 — Logging / Observability
+        ⏳ PLANNED
+
+Phase 2.5.10 — Test Organization
+        ⏳ PLANNED
 
 Phase 3 — Dataset Profiling
-        ⏭ AFTER HARDENING
+        ⏳ AFTER HARDENING
 
 Phase 4 — ML Risk Engine
-        ⏭ FUTURE
+        ⏳ FUTURE
 
 Phase 5 — Recommendation / Decision Engine
-        ⏭ FUTURE
+        ⏳ FUTURE
 
 Phase 6 — What-If Simulation & Validation
-        ⏭ FUTURE
+        ⏳ FUTURE
 
 Phase 7 — Readiness / Pipeline / Reporting
-        ⏭ FUTURE
+        ⏳ FUTURE
 
 Phase 8 — Frontend / Dashboard
-        ⏭ FUTURE
+        ⏳ FUTURE
 
 Phase 9 — AI Mentor / Polish / Deployment
-        ⏭ FUTURE
-```
+        ⏳ FUTURE
 
 ---
 
@@ -200,37 +215,31 @@ Standard structure:
 ```
 
 ---
-
 # 6. Phase 2.5.4 — Edge-Case Audit
 
-**Status: NEXT**
+**Status: COMPLETED**
 
-Goal:
+## Goal
 
 > Verify that the ingestion boundary behaves predictably under realistic and malformed inputs.
 
-Audit areas:
+## Completed Audit
 
 ```text
 Upload
 ├── valid CSV                         ✅
-├── valid XLSX                        ⏳ verify
+├── valid XLSX                        ✅
 ├── oversized file                    ✅
 ├── unsupported extension             ✅
 ├── zero-byte file                    ✅
 ├── malformed CSV                     ✅
 ├── duplicate CSV headers             ✅
 ├── duplicate DataFrame columns       ✅
-├── zero-row dataset                  ⏳ audit
-├── zero-column dataset               ⏳ audit
-├── malformed XLSX                    ⏳ audit
-├── unusual filenames                 ⏳ audit
-└── encoding edge cases               ⏳ audit
-```
-
-The goal is not to create tests for the sake of test count.
-
-Each test should protect a meaningful product guarantee.
+├── zero-row dataset                  ✅
+├── zero-column dataset               ✅
+├── malformed XLSX                    ✅
+├── unusual filenames                 ✅
+└── UTF-8 data                        ✅
 
 ---
 
@@ -726,17 +735,14 @@ Phase 2.5.4
    ↓
 Edge-case audit
    ↓
-Review results
+19 tests / 19 passed
    ↓
-Commit Phase 2.5 milestone
+Commit Phase 2.5.4 milestone
    ↓
-Phase 2.5.5 Dataset lifecycle
+Phase 2.5.5 Dataset Lifecycle
    ↓
 Phase 2.5.6 Immutability
    ↓
-Phase 3 Profiler contract
+Phase 3 Profiler Contract
    ↓
 Profiler implementation
-```
-
-Do not jump directly to React or the LLM.

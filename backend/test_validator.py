@@ -1,7 +1,6 @@
 ﻿import pandas as pd
 import pytest
 
-
 from app.services.dataset_validator import validate_dataset
 from app.exceptions.dataset import DatasetValidationError
 
@@ -31,5 +30,29 @@ def test_duplicate_columns():
         DatasetValidationError,
         match="Duplicate column names found",
     ):
+        validate_dataset(dataframe)
 
+
+def test_zero_row_dataset():
+    dataframe = pd.DataFrame(
+        {
+            "Name": [],
+            "Age": [],
+        }
+    )
+
+    with pytest.raises(
+        DatasetValidationError,
+        match="The dataset contains no rows",
+    ):
+        validate_dataset(dataframe)
+
+
+def test_zero_column_dataset():
+    dataframe = pd.DataFrame(index=[0, 1])
+
+    with pytest.raises(
+        DatasetValidationError,
+        match="The dataset contains no columns",
+    ):
         validate_dataset(dataframe)

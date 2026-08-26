@@ -1,17 +1,15 @@
-import pandas as pd
-
 from app.exceptions.dataset import DatasetValidationError
 
 
-def validate_dataset(dataframe: pd.DataFrame) -> None:
-    if dataframe.empty:
-        raise DatasetValidationError(
-            "The dataset contains no rows."
-        )
-
+def validate_dataset(dataframe) -> None:
     if dataframe.shape[1] == 0:
         raise DatasetValidationError(
             "The dataset contains no columns."
+        )
+
+    if dataframe.shape[0] == 0:
+        raise DatasetValidationError(
+            "The dataset contains no rows."
         )
 
     duplicated_columns = dataframe.columns[
