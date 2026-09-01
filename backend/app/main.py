@@ -152,7 +152,10 @@ async def upload_dataset(file: UploadFile = File(...)):
         column_names=dataframe.columns.tolist(),
     )
 
-    dataset_registry.register(dataset_record)
+    dataset_registry.register(
+        dataset_record,
+        dataframe,
+    )
 
     return DatasetUploadResponse(
         dataset_id=dataset_id,
