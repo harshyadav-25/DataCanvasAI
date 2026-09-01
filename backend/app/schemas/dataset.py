@@ -2,6 +2,7 @@ from pydantic import BaseModel
 
 
 class DatasetUploadResponse(BaseModel):
+    dataset_id: str
     filename: str
     file_type: str
     rows: int

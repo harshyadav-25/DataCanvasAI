@@ -1,4 +1,4 @@
-from fastapi.testclient import TestClient
+﻿from fastapi.testclient import TestClient
 import pandas as pd
 import io
 import pytest
@@ -308,3 +308,29 @@ def test_upload_utf8_dataset():
     assert data["file_type"] == "csv"
     assert data["rows"] == 2
     assert data["columns"] == 2
+
+def test_upload_response_contains_dataset_id():
+    csv_content = (
+        "Name,Age,Salary\n"
+        "Harsh,21,45000\n"
+        "Rahul,22,50000\n"
+    ).encode()
+
+    response = client.post(
+        "/upload",
+        files={
+            "file": (
+                "dataset_id_test.csv",
+                csv_content,
+                "text/csv",
+            )
+        },
+    )
+
+    assert response.status_code == 200
+
+    data = response.json()
+
+    assert "dataset_id" in data
+    assert isinstance(data["dataset_id"], str)
+    assert data["dataset_id"] != ""

@@ -5,6 +5,9 @@ from app.services.dataset_loader import load_dataset
 from app.services.dataset_validator import validate_dataset
 from app.schemas.dataset import DatasetUploadResponse
 from app.schemas.error import ErrorResponse
+from uuid import uuid4
+from app.models.dataset import DatasetRecord
+from app.services.dataset_registry import DatasetRegistry
 from app.exceptions.dataset import (
     UnsupportedFileTypeError,
     EmptyDatasetError,
@@ -22,6 +25,7 @@ app = FastAPI(
     description="From Raw Dataset to ML-Ready Dataset",
     version="0.1.0"
 )
+dataset_registry = DatasetRegistry()
 
 
 @app.exception_handler(UnsupportedFileTypeError)
@@ -137,7 +141,21 @@ async def upload_dataset(file: UploadFile = File(...)):
 
     validate_dataset(dataframe)
 
+    dataset_id = str(uuid4())
+
+    dataset_record = DatasetRecord(
+        dataset_id=dataset_id,
+        filename=file.filename,
+        file_type=file.filename.split(".")[-1].lower(),
+        rows=dataframe.shape[0],
+        columns=dataframe.shape[1],
+        column_names=dataframe.columns.tolist(),
+    )
+
+    dataset_registry.register(dataset_record)
+
     return DatasetUploadResponse(
+        dataset_id=dataset_id,
         filename=file.filename,
         file_type=file.filename.split(".")[-1].lower(),
         rows=dataframe.shape[0],
