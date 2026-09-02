@@ -15,3 +15,6 @@ class DatasetValidationError(Exception):
 
 class DatasetTooLargeError(Exception):
     """Raised when the uploaded dataset exceeds the maximum allowed size."""
+
+class DatasetNotFoundError(Exception):
+    """Raised when a requested dataset does not exist in the registry."""

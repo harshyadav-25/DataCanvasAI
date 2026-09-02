@@ -14,6 +14,7 @@ from app.exceptions.dataset import (
     DatasetReadError,
     DatasetValidationError,
     DatasetTooLargeError,
+    DatasetNotFoundError,
 )
 
 
@@ -165,4 +166,14 @@ async def upload_dataset(file: UploadFile = File(...)):
         columns=dataframe.shape[1],
         column_names=dataframe.columns.tolist(),
         message="Dataset uploaded and validated successfully."
+    )
+
+@app.exception_handler(DatasetNotFoundError)
+async def dataset_not_found_handler(
+    request: Request,
+    exc: DatasetNotFoundError,
+):
+    return JSONResponse(
+        status_code=404,
+        content={"detail": str(exc)},
     )
