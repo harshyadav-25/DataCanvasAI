@@ -1,4 +1,4 @@
-from fastapi import FastAPI, UploadFile, File, Request
+from fastapi import FastAPI, UploadFile, File, Request, Depends
 from fastapi.responses import JSONResponse
 
 from app.services.dataset_loader import load_dataset
@@ -16,6 +16,9 @@ from app.exceptions.dataset import (
     DatasetTooLargeError,
     DatasetNotFoundError,
 )
+from app.core.db import connect_to_mongo, close_mongo_connection
+from app.api.auth import router as auth_router
+from app.core.dependencies import get_current_user
 
 
 MAX_UPLOAD_SIZE = 25 * 1024 * 1024
@@ -27,6 +30,23 @@ app = FastAPI(
     version="0.1.0"
 )
 dataset_registry = DatasetRegistry()
+
+
+# MongoDB connection events
+@app.on_event("startup")
+async def startup_event():
+    """Connect to MongoDB on app startup."""
+    await connect_to_mongo()
+
+
+@app.on_event("shutdown")
+async def shutdown_event():
+    """Close MongoDB connection on app shutdown."""
+    await close_mongo_connection()
+
+
+# Include authentication router
+app.include_router(auth_router, tags=["Authentication"])
 
 
 @app.exception_handler(UnsupportedFileTypeError)
@@ -127,7 +147,19 @@ def root():
 
 
 @app.post("/upload", response_model=DatasetUploadResponse)
-async def upload_dataset(file: UploadFile = File(...)):
+async def upload_dataset(
+    file: UploadFile = File(...),
+    current_user: dict = Depends(get_current_user)
+):
+    """
+    Upload and validate a dataset. 
+    Protected endpoint - requires authentication.
+    
+    - **file**: CSV or XLSX file to upload (max 25MB)
+    - **current_user**: Authenticated user (from JWT token)
+    
+    Returns: Dataset metadata with dataset_id for reference
+    """
     file_content = await file.read()
 
     if len(file_content) > MAX_UPLOAD_SIZE:
