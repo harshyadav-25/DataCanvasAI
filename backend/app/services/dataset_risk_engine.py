@@ -6,13 +6,14 @@ from app.schemas.target import TargetAnalysis
 
 from app.schemas.risk import RiskFinding, RiskSeverity
 
-
 IDENTIFIER_NAME_PATTERN = re.compile(
     r"(^|[_\-\s])(id|key|uuid|identifier)($|[_\-\s])",
     re.IGNORECASE,
 )
 
 UNIQUENESS_THRESHOLD = 0.95
+MISSING_VALUE_THRESHOLD = 0.20
+SEVERE_MISSING_VALUE_THRESHOLD = 0.50
 
 
 def detect_identifier_like_columns(
@@ -180,3 +181,100 @@ def analyze_target_column(
     dataframe: pd.DataFrame,
     target_column: str,
 ) -> TargetAnalysis:
+    return analyze_target(dataframe, target_column)
+
+def detect_missing_value_risk(
+    dataframe: pd.DataFrame,
+) -> list[RiskFinding]:
+    findings: list[RiskFinding] = []
+
+    if dataframe.empty:
+        return findings
+
+    row_count = len(dataframe)
+
+    for column in dataframe.columns:
+        missing_count = int(dataframe[column].isna().sum())
+        missing_ratio = missing_count / row_count
+
+        if missing_ratio < MISSING_VALUE_THRESHOLD:
+            continue
+
+        if missing_ratio >= SEVERE_MISSING_VALUE_THRESHOLD:
+            severity = RiskSeverity.HIGH
+        else:
+            severity = RiskSeverity.MEDIUM
+
+        findings.append(
+            RiskFinding(
+                risk_type="MISSING_VALUES",
+                severity=severity,
+                column=str(column),
+                title="High missing-value rate detected",
+                evidence={
+                    "row_count": row_count,
+                    "missing_count": missing_count,
+                    "missing_percentage": missing_ratio * 100,
+                },
+                explanation=(
+                    "This column contains a high proportion of missing "
+                    "values. Missing data may reduce usable training "
+                    "samples and can affect model reliability. "
+                    "Investigate an appropriate missing-value strategy."
+                ),
+                confidence=0.95,
+            )
+        )
+
+    return findings
+def test_low_missing_values_have_no_risk():
+    dataframe = pd.DataFrame({
+        "age": [21, 22, 23, 24, 25],
+    })
+
+    findings = detect_missing_value_risk(dataframe)
+
+    assert findings == []
+
+
+def test_moderate_missing_values_are_detected():
+    dataframe = pd.DataFrame({
+        "age": [21, 22, None, None, 25],
+    })
+
+    findings = detect_missing_value_risk(dataframe)
+
+    assert len(findings) == 1
+    assert findings[0].risk_type == "MISSING_VALUES"
+    assert findings[0].severity == RiskSeverity.MEDIUM
+
+
+def test_severe_missing_values_are_high_risk():
+    dataframe = pd.DataFrame({
+        "age": [21, None, None, None, None],
+    })
+
+    findings = detect_missing_value_risk(dataframe)
+
+    assert len(findings) == 1
+    assert findings[0].risk_type == "MISSING_VALUES"
+    assert findings[0].severity == RiskSeverity.HIGH
+
+
+def test_multiple_columns_with_missing_values_are_detected():
+    dataframe = pd.DataFrame({
+        "age": [21, None, None, 24, 25],
+        "salary": [45000, None, None, None, 60000],
+    })
+
+    findings = detect_missing_value_risk(dataframe)
+
+    assert len(findings) == 2
+
+
+def test_empty_dataframe_returns_no_missing_value_findings():
+    dataframe = pd.DataFrame()
+
+    findings = detect_missing_value_risk(dataframe)
+
+    assert findings == []

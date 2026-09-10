@@ -5,6 +5,7 @@ from app.schemas.risk import RiskSeverity
 from app.services.dataset_risk_engine import (
     detect_class_imbalance,
     detect_identifier_like_columns,
+    detect_missing_value_risk,
 )
 
 
@@ -179,6 +180,57 @@ def test_empty_dataframe_returns_no_findings():
     dataframe = pd.DataFrame()
 
     findings = detect_class_imbalance(dataframe, "target")
+
+    assert findings == []
+def test_low_missing_values_have_no_risk():
+    dataframe = pd.DataFrame({
+        "age": [21, 22, 23, 24, 25],
+    })
+
+    findings = detect_missing_value_risk(dataframe)
+
+    assert findings == []
+
+
+def test_moderate_missing_values_are_detected():
+    dataframe = pd.DataFrame({
+        "age": [21, 22, None, None, 25],
+    })
+
+    findings = detect_missing_value_risk(dataframe)
+
+    assert len(findings) == 1
+    assert findings[0].risk_type == "MISSING_VALUES"
+    assert findings[0].severity == RiskSeverity.MEDIUM
+
+
+def test_severe_missing_values_are_high_risk():
+    dataframe = pd.DataFrame({
+        "age": [21, None, None, None, None],
+    })
+
+    findings = detect_missing_value_risk(dataframe)
+
+    assert len(findings) == 1
+    assert findings[0].risk_type == "MISSING_VALUES"
+    assert findings[0].severity == RiskSeverity.HIGH
+
+
+def test_multiple_columns_with_missing_values_are_detected():
+    dataframe = pd.DataFrame({
+        "age": [21, None, None, 24, 25],
+        "salary": [45000, None, None, None, 60000],
+    })
+
+    findings = detect_missing_value_risk(dataframe)
+
+    assert len(findings) == 2
+
+
+def test_empty_dataframe_returns_no_missing_value_findings():
+    dataframe = pd.DataFrame()
+
+    findings = detect_missing_value_risk(dataframe)
 
     assert findings == []
 
