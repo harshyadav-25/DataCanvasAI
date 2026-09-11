@@ -45,3 +45,6 @@ python-jose[cryptography]==3.3.0
 passlib[bcrypt]==1.7.4
 pydantic-settings==2.1.0
 email-validator==2.1.0
+catboost==1.2.10
+xgboost==3.4.1
+lightgbm==4.7.0
