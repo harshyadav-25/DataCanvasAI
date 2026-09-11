@@ -2,7 +2,7 @@ import { NavLink } from 'react-router-dom'
 
 function Sidebar() {
   const menuItems = [
-    { name: 'Home', path: '/' },
+    { name: 'Home', path: '/dashboard' },
     { name: 'Upload', path: '/upload' },
     { name: 'Data Preview', path: '/overview' },
     { name: 'Preprocessing', path: '/canvas' },
