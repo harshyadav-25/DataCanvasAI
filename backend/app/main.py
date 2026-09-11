@@ -19,6 +19,7 @@ from app.exceptions.dataset import (
 from app.core.db import connect_to_mongo, close_mongo_connection
 from app.api.auth import router as auth_router
 from app.core.dependencies import get_current_user
+from fastapi.middleware.cors import CORSMiddleware
 
 
 MAX_UPLOAD_SIZE = 25 * 1024 * 1024
@@ -28,6 +29,14 @@ app = FastAPI(
     title="DataCanvasAI API",
     description="From Raw Dataset to ML-Ready Dataset",
     version="0.1.0"
+)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:5173"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 dataset_registry = DatasetRegistry()
 

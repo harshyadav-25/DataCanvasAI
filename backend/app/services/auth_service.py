@@ -1,11 +1,11 @@
 from fastapi import HTTPException, status
-from motor.motor_asyncio import AsyncDatabase
+from typing import Any
 from app.core.security import hash_password, verify_password, create_access_token
 from app.models.user import create_user_document, user_doc_to_dict
 
 
 async def signup_user(
-    db: AsyncDatabase,
+    db: Any,
     name: str,
     email: str,
     password: str
@@ -50,7 +50,7 @@ async def signup_user(
 
 
 async def authenticate_user(
-    db: AsyncDatabase,
+    db: Any,
     email: str,
     password: str
 ) -> str:
