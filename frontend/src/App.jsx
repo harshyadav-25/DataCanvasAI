@@ -6,6 +6,7 @@ import Dashboard from './pages/Dashboard'
 import Upload from './pages/Upload'
 import Login from './pages/Login'
 import Register from './pages/Register'
+import DataCanvas from './pages/DataCanvas'
 
 function App() {
   return (
@@ -32,6 +33,16 @@ function App() {
           element={
             <Layout>
               <Upload />
+            </Layout>
+          }
+        />
+
+        {/* Dataset Canvas */}
+        <Route
+          path="/canvas"
+          element={
+            <Layout>
+              <DataCanvas />
             </Layout>
           }
         />
