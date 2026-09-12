@@ -4,15 +4,27 @@ import io
 import pytest
 
 from app.main import app
-
+from app.core.dependencies import get_current_user
 
 client = TestClient(app)
+
+
+def mock_current_user():
+    return {
+        "id": "test-user-id",
+        "name": "Test User",
+        "email": "test@example.com",
+    }
+
+
+app.dependency_overrides[get_current_user] = mock_current_user
 
 
 def test_upload_valid_csv():
     with open("../datasets/sample/test_dataset.csv", "rb") as file:
         response = client.post(
             "/upload",
+            headers={"Authorization": "Bearer test-token"},
             files={
                 "file": (
                     "test_dataset.csv",
@@ -43,6 +55,7 @@ def test_upload_file_too_large():
 
     response = client.post(
         "/upload",
+        headers={"Authorization": "Bearer test-token"},
         files={
             "file": (
                 "large_dataset.csv",
@@ -65,6 +78,7 @@ def test_upload_file_too_large():
 def test_upload_unsupported_file_format():
     response = client.post(
         "/upload",
+        headers={"Authorization": "Bearer test-token"},
         files={
             "file": (
                 "test_dataset.pdf",
@@ -91,6 +105,7 @@ def test_upload_dataset_with_duplicate_columns():
 
     response = client.post(
         "/upload",
+        headers={"Authorization": "Bearer test-token"},
         files={
             "file": (
                 "duplicate_columns.csv",
@@ -107,9 +122,11 @@ def test_upload_dataset_with_duplicate_columns():
     assert data["error"]["code"] == "DATASET_VALIDATION_ERROR"
     assert "Duplicate column names found" in data["error"]["message"]
 
+
 def test_upload_empty_dataset():
     response = client.post(
         "/upload",
+        headers={"Authorization": "Bearer test-token"},
         files={
             "file": (
                 "empty_dataset.csv",
@@ -126,6 +143,7 @@ def test_upload_empty_dataset():
     assert data["error"]["code"] == "EMPTY_DATASET"
     assert "uploaded dataset is empty" in data["error"]["message"].lower()
 
+
 def test_upload_malformed_csv():
     malformed_csv = (
         "Name,Age,Salary\n"
@@ -135,6 +153,7 @@ def test_upload_malformed_csv():
 
     response = client.post(
         "/upload",
+        headers={"Authorization": "Bearer test-token"},
         files={
             "file": (
                 "malformed.csv",
@@ -151,10 +170,8 @@ def test_upload_malformed_csv():
     assert data["error"]["code"] == "DATASET_READ_ERROR"
     assert "Unable to read dataset" in data["error"]["message"]
 
-def test_upload_valid_xlsx():
-    import io
-    import pandas as pd
 
+def test_upload_valid_xlsx():
     dataframe = pd.DataFrame(
         {
             "Name": ["Harsh", "Rahul"],
@@ -169,6 +186,7 @@ def test_upload_valid_xlsx():
 
     response = client.post(
         "/upload",
+        headers={"Authorization": "Bearer test-token"},
         files={
             "file": (
                 "test_dataset.xlsx",
@@ -188,15 +206,17 @@ def test_upload_valid_xlsx():
     assert data["columns"] == 3
     assert data["column_names"] == ["Name", "Age", "Salary"]
 
+
 def test_upload_malformed_csv():
     csv_content = (
         "Name,Age,Salary\n"
-        "Harsh,21,\"45000\n"
+        'Harsh,21,"45000\n'
         "Rahul,22,50000\n"
     ).encode()
 
     response = client.post(
         "/upload",
+        headers={"Authorization": "Bearer test-token"},
         files={
             "file": (
                 "malformed.csv",
@@ -213,6 +233,7 @@ def test_upload_malformed_csv():
     assert data["error"]["code"] == "DATASET_READ_ERROR"
     assert "Unable to read dataset" in data["error"]["message"]
 
+
 def test_upload_zero_row_dataset():
     csv_content = (
         "Name,Age,Salary\n"
@@ -220,6 +241,7 @@ def test_upload_zero_row_dataset():
 
     response = client.post(
         "/upload",
+        headers={"Authorization": "Bearer test-token"},
         files={
             "file": (
                 "zero_row.csv",
@@ -236,9 +258,11 @@ def test_upload_zero_row_dataset():
     assert data["error"]["code"] == "EMPTY_DATASET"
     assert "uploaded dataset is empty" in data["error"]["message"].lower()
 
+
 def test_upload_malformed_xlsx():
     response = client.post(
         "/upload",
+        headers={"Authorization": "Bearer test-token"},
         files={
             "file": (
                 "malformed.xlsx",
@@ -255,6 +279,7 @@ def test_upload_malformed_xlsx():
     assert data["error"]["code"] == "DATASET_READ_ERROR"
     assert "Unable to read dataset" in data["error"]["message"]
 
+
 def test_upload_dataset_with_unusual_filename():
     csv_content = (
         "Name,Age,Salary\n"
@@ -264,6 +289,7 @@ def test_upload_dataset_with_unusual_filename():
 
     response = client.post(
         "/upload",
+        headers={"Authorization": "Bearer test-token"},
         files={
             "file": (
                 "my dataset (final)-v2.csv",
@@ -282,6 +308,7 @@ def test_upload_dataset_with_unusual_filename():
     assert data["rows"] == 2
     assert data["columns"] == 3
 
+
 def test_upload_utf8_dataset():
     csv_content = (
         "Name,City\n"
@@ -291,6 +318,7 @@ def test_upload_utf8_dataset():
 
     response = client.post(
         "/upload",
+        headers={"Authorization": "Bearer test-token"},
         files={
             "file": (
                 "unicode_dataset.csv",
@@ -309,6 +337,7 @@ def test_upload_utf8_dataset():
     assert data["rows"] == 2
     assert data["columns"] == 2
 
+
 def test_upload_response_contains_dataset_id():
     csv_content = (
         "Name,Age,Salary\n"
@@ -318,6 +347,7 @@ def test_upload_response_contains_dataset_id():
 
     response = client.post(
         "/upload",
+        headers={"Authorization": "Bearer test-token"},
         files={
             "file": (
                 "dataset_id_test.csv",
