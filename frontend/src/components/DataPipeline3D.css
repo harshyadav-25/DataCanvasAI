@@ -1,0 +1,13 @@
+.data-pipeline-3d {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+.data-pipeline-3d canvas {
+  display: block;
+  width: 100% !important;
+  height: 100% !important;
+}

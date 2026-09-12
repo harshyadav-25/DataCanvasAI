@@ -2,91 +2,301 @@ import { NavLink } from 'react-router-dom'
 
 function Sidebar() {
   const menuItems = [
-    { name: 'Home', path: '/dashboard' },
-    { name: 'Upload', path: '/upload' },
-    { name: 'Data Preview', path: '/overview' },
-    { name: 'Preprocessing', path: '/canvas' },
-    { name: 'Visualization', path: '/visualization' },
-    { name: 'Modeling', path: '/modeling' },
-    { name: 'History', path: '/history' },
+    {
+      name: 'Home',
+      path: '/dashboard',
+      icon: (
+        <svg
+          className="h-5 w-5"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.8"
+          viewBox="0 0 24 24"
+        >
+          <path d="M3 10.5L12 3l9 7.5" />
+          <path d="M5 9.5V21h14V9.5" />
+          <path d="M9 21v-7h6v7" />
+        </svg>
+      ),
+    },
+    {
+      name: 'Upload',
+      path: '/upload',
+      icon: (
+        <svg
+          className="h-5 w-5"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.8"
+          viewBox="0 0 24 24"
+        >
+          <path d="M12 16V4" />
+          <path d="M7 9l5-5 5 5" />
+          <path d="M5 20h14" />
+        </svg>
+      ),
+    },
+    {
+      name: 'Data Preview',
+      path: '/overview',
+      icon: (
+        <svg
+          className="h-5 w-5"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.8"
+          viewBox="0 0 24 24"
+        >
+          <rect x="3" y="4" width="18" height="16" rx="2" />
+          <path d="M3 9h18" />
+          <path d="M8 9v11" />
+          <path d="M13 13h5" />
+          <path d="M13 16h5" />
+        </svg>
+      ),
+    },
+    {
+      name: 'Preprocessing',
+      path: '/canvas',
+      icon: (
+        <svg
+          className="h-5 w-5"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.8"
+          viewBox="0 0 24 24"
+        >
+          <path d="M4 6h16" />
+          <path d="M7 12h10" />
+          <path d="M10 18h4" />
+          <circle cx="8" cy="6" r="1.5" />
+          <circle cx="15" cy="12" r="1.5" />
+          <circle cx="11" cy="18" r="1.5" />
+        </svg>
+      ),
+    },
+    {
+      name: 'Visualization',
+      path: '/visualization',
+      icon: (
+        <svg
+          className="h-5 w-5"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.8"
+          viewBox="0 0 24 24"
+        >
+          <path d="M4 19V5" />
+          <path d="M4 19h16" />
+          <path d="M7 15l4-5 3 3 5-7" />
+        </svg>
+      ),
+    },
+    {
+      name: 'Modeling',
+      path: '/modeling',
+      icon: (
+        <svg
+          className="h-5 w-5"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.8"
+          viewBox="0 0 24 24"
+        >
+          <rect x="4" y="4" width="16" height="16" rx="3" />
+          <circle cx="9" cy="9" r="1.5" />
+          <circle cx="15" cy="9" r="1.5" />
+          <circle cx="9" cy="15" r="1.5" />
+          <circle cx="15" cy="15" r="1.5" />
+          <path d="M9 10.5v3" />
+          <path d="M15 10.5v3" />
+          <path d="M10.5 9h3" />
+          <path d="M10.5 15h3" />
+        </svg>
+      ),
+    },
+    {
+      name: 'History',
+      path: '/history',
+      icon: (
+        <svg
+          className="h-5 w-5"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.8"
+          viewBox="0 0 24 24"
+        >
+          <path d="M3 12a9 9 0 1 0 3-6.7" />
+          <path d="M3 5v5h5" />
+          <path d="M12 7v5l3 2" />
+        </svg>
+      ),
+    },
   ]
 
   return (
-    <aside className="w-[208px] shrink-0 min-h-screen bg-white border-r border-[#E5E7F0] flex flex-col">
+    <aside
+      className="
+        fixed
+        left-0
+        top-0
+        z-40
+        flex
+        h-screen
+        w-[208px]
+        shrink-0
+        flex-col
+        overflow-hidden
+        border-r
+        border-white/[0.08]
+        bg-[#050816]/30
+        text-white
+        backdrop-blur-xl
+      "
+    >
+      {/* =====================================================
+          LOGO SECTION
+          ===================================================== */}
 
-      {/* Logo */}
-      <div className="h-[68px] px-5 flex items-center border-b border-[#F0F1F6]">
-        <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-lg bg-[#EEF0FF] flex items-center justify-center">
+      <div
+        className="
+          shrink-0
+          border-b
+          border-white/[0.07]
+          px-5
+          py-5
+        "
+      >
+        <div className="flex items-center gap-3">
+
+          {/* Logo Icon */}
+
+          <div
+            className="
+              flex
+              h-10
+              w-10
+              shrink-0
+              items-center
+              justify-center
+              rounded-xl
+              bg-[#5B56E8]
+              shadow-[0_0_25px_rgba(91,86,232,0.35)]
+            "
+          >
             <svg
-              className="w-5 h-5 text-[#5B56E8]"
+              className="h-6 w-6 text-white"
               fill="none"
               stroke="currentColor"
-              strokeWidth="2"
+              strokeWidth="1.8"
               viewBox="0 0 24 24"
             >
-              <ellipse cx="12" cy="5" rx="7" ry="3" />
-              <path d="M5 5v7c0 1.7 3.1 3 7 3s7-1.3 7-3V5" />
-              <path d="M5 12v7c0 1.7 3.1 3 7 3s7-1.3 7-3v-7" />
+              <ellipse
+                cx="12"
+                cy="5"
+                rx="7"
+                ry="3"
+              />
+
+              <path
+                d="M5 5v7c0 1.7 3.1 3 7 3s7-1.3 7-3V5"
+              />
+
+              <path
+                d="M5 12v7c0 1.7 3.1 3 7 3s7-1.3 7-3v-7"
+              />
             </svg>
           </div>
 
-          <span className="font-bold text-[#5B56E8] text-lg">
-            DataCanvasAI
-          </span>
+          {/* Logo Text */}
+
+          <div>
+            <p className="text-lg font-bold leading-tight text-white">
+              DataCanvas<span className="text-[#8D89FF]">AI</span>
+            </p>
+
+            <p className="mt-0.5 whitespace-nowrap text-[8px] text-slate-400">
+              Clean Data. Smarter Models.
+            </p>
+          </div>
+
         </div>
       </div>
 
-      {/* Navigation */}
-      <nav className="p-3 space-y-1">
+      {/* =====================================================
+          NAVIGATION
+          ===================================================== */}
+
+      <nav className="flex-1 space-y-1 overflow-y-auto p-3">
+
         {menuItems.map((item) => (
           <NavLink
             key={item.name}
             to={item.path}
             className={({ isActive }) =>
-              `flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition ${
-                isActive
-                  ? 'bg-[#EEF0FF] text-[#5B56E8]'
-                  : 'text-[#667085] hover:bg-[#F7F8FC] hover:text-[#17213A]'
-              }`
+              `
+                group
+                flex
+                items-center
+                gap-3
+                rounded-xl
+                border
+                px-3
+                py-2.5
+                text-sm
+                font-semibold
+                transition-all
+                duration-200
+
+                ${
+                  isActive
+                    ? `
+                      border-[#756BFF]/30
+                      bg-gradient-to-r
+                      from-[#5148D8]/30
+                      to-[#756BFF]/15
+                      text-white
+                      shadow-[0_0_20px_rgba(81,72,216,0.12)]
+                    `
+                    : `
+                      border-transparent
+                      text-white
+                      hover:bg-white/[0.06]
+                      hover:text-white
+                    `
+                }
+              `
             }
           >
-            <span className="w-2 h-2 rounded-full bg-current opacity-60" />
-            {item.name}
+            {/* Menu Icon */}
+
+            <span
+              className="
+                flex
+                h-5
+                w-5
+                shrink-0
+                items-center
+                justify-center
+                text-white
+                opacity-90
+                transition-all
+                duration-200
+                group-hover:opacity-100
+              "
+            >
+              {item.icon}
+            </span>
+
+            {/* Menu Name */}
+
+            <span className="text-white">
+              {item.name}
+            </span>
           </NavLink>
         ))}
+
       </nav>
-
-      {/* Bottom Card */}
-      <div className="mt-auto p-3">
-        <div className="rounded-xl bg-[#F3F1FF] border border-[#E1DEFF] p-4">
-
-          <div className="w-9 h-9 rounded-lg bg-white flex items-center justify-center text-[#5B56E8]">
-            <svg
-              className="w-5 h-5"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              viewBox="0 0 24 24"
-            >
-              <path d="M12 3v18M3 12h18" />
-            </svg>
-          </div>
-
-          <p className="mt-3 text-sm font-semibold text-[#17213A]">
-            Turn your data into insights.
-          </p>
-
-          <p className="mt-1 text-xs leading-5 text-[#667085]">
-            Simple tools. Smarter decisions.
-          </p>
-
-          <div className="mt-3 text-[#5B56E8] text-lg">
-            →
-          </div>
-        </div>
-      </div>
-
     </aside>
   )
 }

@@ -1,1 +1,65 @@
 @import "tailwindcss";
+
+
+/* =========================================================
+   3D DATA MODEL ANIMATION
+========================================================= */
+
+@keyframes dataModelFloat {
+
+  0% {
+    transform:
+      translate3d(0, 0, 0)
+      rotate(-2deg)
+      scale(1);
+  }
+
+  25% {
+    transform:
+      translate3d(-18px, -20px, 0)
+      rotate(1deg)
+      scale(1.025);
+  }
+
+  50% {
+    transform:
+      translate3d(-35px, -5px, 0)
+      rotate(2deg)
+      scale(1.05);
+  }
+
+  75% {
+    transform:
+      translate3d(-18px, 15px, 0)
+      rotate(0deg)
+      scale(1.025);
+  }
+
+  100% {
+    transform:
+      translate3d(0, 0, 0)
+      rotate(-2deg)
+      scale(1);
+  }
+
+}
+
+
+/* Main model */
+.data-model-float {
+  animation: dataModelFloat 12s ease-in-out infinite;
+  will-change: transform;
+}
+
+
+/* =========================================================
+   RESPECT REDUCED MOTION
+========================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+
+  .data-model-float {
+    animation: none;
+  }
+
+}
