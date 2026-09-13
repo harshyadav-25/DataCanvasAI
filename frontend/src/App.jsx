@@ -8,6 +8,7 @@ import Overview from './pages/Overview'
 import Profiling from './pages/Profiling'
 import Login from './pages/Login'
 import Register from './pages/Register'
+import DataCanvas from './pages/DataCanvas'
 
 function App() {
   return (
@@ -33,6 +34,16 @@ function App() {
           element={
             <Layout>
               <Upload />
+            </Layout>
+          }
+        />
+
+        {/* Dataset Canvas */}
+        <Route
+          path="/canvas"
+          element={
+            <Layout>
+              <DataCanvas />
             </Layout>
           }
         />
