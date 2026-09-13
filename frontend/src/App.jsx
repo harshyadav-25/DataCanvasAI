@@ -4,20 +4,41 @@ import Layout from './components/layout/Layout'
 
 import Dashboard from './pages/Dashboard'
 import Upload from './pages/Upload'
+import Overview from './pages/Overview'
+
 import Login from './pages/Login'
 import Register from './pages/Register'
 
 function App() {
   return (
     <BrowserRouter>
+
       <Routes>
 
-        {/* Authentication */}
-        <Route path="/" element={<Register />} />
-        <Route path="/register" element={<Register />} />
-        <Route path="/login" element={<Login />} />
+        {/* =================================================
+            AUTHENTICATION
+        ================================================= */}
 
-        {/* Application */}
+        <Route
+          path="/"
+          element={<Register />}
+        />
+
+        <Route
+          path="/register"
+          element={<Register />}
+        />
+
+        <Route
+          path="/login"
+          element={<Login />}
+        />
+
+
+        {/* =================================================
+            APPLICATION
+        ================================================= */}
+
         <Route
           path="/dashboard"
           element={
@@ -26,6 +47,7 @@ function App() {
             </Layout>
           }
         />
+
 
         <Route
           path="/upload"
@@ -36,7 +58,18 @@ function App() {
           }
         />
 
+
+        <Route
+          path="/overview"
+          element={
+            <Layout>
+              <Overview />
+            </Layout>
+          }
+        />
+
       </Routes>
+
     </BrowserRouter>
   )
 }
