@@ -19,6 +19,7 @@ function Sidebar() {
         </svg>
       ),
     },
+
     {
       name: 'Upload',
       path: '/upload',
@@ -36,6 +37,7 @@ function Sidebar() {
         </svg>
       ),
     },
+
     {
       name: 'Data Preview',
       path: '/overview',
@@ -55,6 +57,25 @@ function Sidebar() {
         </svg>
       ),
     },
+
+    {
+      name: 'Profiling',
+      path: '/profiling',
+      icon: (
+        <svg
+          className="h-5 w-5"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.8"
+          viewBox="0 0 24 24"
+        >
+          <path d="M4 19V5" />
+          <path d="M4 19h16" />
+          <path d="M7 15l4-5 3 3 5-7" />
+        </svg>
+      ),
+    },
+
     {
       name: 'Preprocessing',
       path: '/canvas',
@@ -75,6 +96,7 @@ function Sidebar() {
         </svg>
       ),
     },
+
     {
       name: 'Visualization',
       path: '/visualization',
@@ -92,6 +114,7 @@ function Sidebar() {
         </svg>
       ),
     },
+
     {
       name: 'Modeling',
       path: '/modeling',
@@ -115,6 +138,7 @@ function Sidebar() {
         </svg>
       ),
     },
+
     {
       name: 'History',
       path: '/history',
@@ -170,7 +194,6 @@ function Sidebar() {
         <div className="flex items-center gap-3">
 
           {/* Logo Icon */}
-
           <div
             className="
               flex
@@ -197,11 +220,9 @@ function Sidebar() {
                 rx="7"
                 ry="3"
               />
-
               <path
                 d="M5 5v7c0 1.7 3.1 3 7 3s7-1.3 7-3V5"
               />
-
               <path
                 d="M5 12v7c0 1.7 3.1 3 7 3s7-1.3 7-3v-7"
               />
@@ -209,7 +230,6 @@ function Sidebar() {
           </div>
 
           {/* Logo Text */}
-
           <div>
             <p className="text-lg font-bold leading-tight text-white">
               DataCanvas<span className="text-[#8D89FF]">AI</span>
@@ -228,7 +248,6 @@ function Sidebar() {
           ===================================================== */}
 
       <nav className="flex-1 space-y-1 overflow-y-auto p-3">
-
         {menuItems.map((item) => (
           <NavLink
             key={item.name}
@@ -269,7 +288,6 @@ function Sidebar() {
             }
           >
             {/* Menu Icon */}
-
             <span
               className="
                 flex
@@ -289,13 +307,11 @@ function Sidebar() {
             </span>
 
             {/* Menu Name */}
-
             <span className="text-white">
               {item.name}
             </span>
           </NavLink>
         ))}
-
       </nav>
     </aside>
   )
