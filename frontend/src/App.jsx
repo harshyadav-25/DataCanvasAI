@@ -10,18 +10,25 @@ import Login from './pages/Login'
 import Register from './pages/Register'
 import DataCanvas from './pages/DataCanvas'
 import Risks from './pages/Risks'
+import Recommendations from './pages/Recommendations'
 
 function App() {
   return (
     <BrowserRouter>
       <Routes>
 
-        {/* Authentication */}
+        {/* =====================================================
+            AUTHENTICATION
+        ====================================================== */}
+
         <Route path="/" element={<Register />} />
         <Route path="/register" element={<Register />} />
         <Route path="/login" element={<Login />} />
 
-        {/* Application */}
+
+        {/* =====================================================
+            APPLICATION
+        ====================================================== */}
 
         {/* Dashboard */}
         <Route
@@ -33,6 +40,7 @@ function App() {
           }
         />
 
+
         {/* Upload */}
         <Route
           path="/upload"
@@ -42,6 +50,7 @@ function App() {
             </Layout>
           }
         />
+
 
         {/* Dataset Canvas */}
         <Route
@@ -53,6 +62,7 @@ function App() {
           }
         />
 
+
         {/* Data Overview */}
         <Route
           path="/overview"
@@ -63,7 +73,19 @@ function App() {
           }
         />
 
-        {/* ML Risk Auditor */}
+
+        {/* Profiling */}
+        <Route
+          path="/profiling"
+          element={
+            <Layout>
+              <Profiling />
+            </Layout>
+          }
+        />
+
+
+        {/* ML Risk Auditor - Task 2 */}
         <Route
           path="/risks"
           element={
@@ -73,12 +95,13 @@ function App() {
           }
         />
 
-        {/* Profiling */}
+
+        {/* Recommendations - Task 3 */}
         <Route
-          path="/profiling"
+          path="/recommendations"
           element={
             <Layout>
-              <Profiling />
+              <Recommendations />
             </Layout>
           }
         />

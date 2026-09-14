@@ -113,7 +113,34 @@ function Sidebar() {
         >
           <path d="M12 3l8 4v5c0 4.8-3.4 8.1-8 9-4.6-.9-8-4.2-8-9V7l8-4z" />
           <path d="M12 8v5" />
-          <circle cx="12" cy="16.5" r="0.8" fill="currentColor" stroke="none" />
+          <circle
+            cx="12"
+            cy="16.5"
+            r="0.8"
+            fill="currentColor"
+            stroke="none"
+          />
+        </svg>
+      ),
+    },
+
+    /* =====================================================
+       TASK 3 — RECOMMENDATIONS
+       ===================================================== */
+    {
+      name: 'Recommendations',
+      path: '/recommendations',
+      icon: (
+        <svg
+          className="h-5 w-5"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.8"
+          viewBox="0 0 24 24"
+        >
+          <path d="M9 18h6" />
+          <path d="M10 21h4" />
+          <path d="M8.5 14.5C7.6 13.7 7 12.5 7 11a5 5 0 1 1 10 0c0 1.5-.6 2.7-1.5 3.5-.7.6-1.2 1.4-1.3 2.5h-2.4c-.1-1.1-.6-1.9-1.3-2.5Z" />
         </svg>
       ),
     },
@@ -241,9 +268,11 @@ function Sidebar() {
                 rx="7"
                 ry="3"
               />
+
               <path
                 d="M5 5v7c0 1.7 3.1 3 7 3s7-1.3 7-3V5"
               />
+
               <path
                 d="M5 12v7c0 1.7 3.1 3 7 3s7-1.3 7-3v-7"
               />
@@ -270,6 +299,7 @@ function Sidebar() {
           ===================================================== */}
 
       <nav className="flex-1 space-y-1 overflow-y-auto p-3">
+
         {menuItems.map((item) => (
           <NavLink
             key={item.name}
@@ -334,6 +364,7 @@ function Sidebar() {
             </span>
           </NavLink>
         ))}
+
       </nav>
     </aside>
   )
