@@ -1,7 +1,9 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 
 import Layout from './components/layout/Layout'
+import ProtectedRoute from './components/auth/ProtectedRoute'
 
+import Landing from './pages/Landing'
 import Dashboard from './pages/Dashboard'
 import Upload from './pages/Upload'
 import Overview from './pages/Overview'
@@ -17,92 +19,170 @@ function App() {
     <BrowserRouter>
       <Routes>
 
-        {/* =====================================================
+        {/* =========================
+            PUBLIC LANDING PAGE
+            ========================= */}
+        <Route
+          path="/"
+          element={<Landing />}
+        />
+
+        {/* =========================
             AUTHENTICATION
-        ====================================================== */}
+            ========================= */}
+        <Route
+          path="/login"
+          element={<Login />}
+        />
 
-        <Route path="/" element={<Register />} />
-        <Route path="/register" element={<Register />} />
-        <Route path="/login" element={<Login />} />
+        <Route
+          path="/register"
+          element={<Register />}
+        />
 
-
-        {/* =====================================================
-            APPLICATION
-        ====================================================== */}
-
-        {/* Dashboard */}
+        {/* =========================
+            PROTECTED DASHBOARD
+            ========================= */}
         <Route
           path="/dashboard"
           element={
-            <Layout>
-              <Dashboard />
-            </Layout>
+            <ProtectedRoute>
+              <Layout>
+                <Dashboard />
+              </Layout>
+            </ProtectedRoute>
           }
         />
 
-
-        {/* Upload */}
+        {/* =========================
+            PROTECTED UPLOAD
+            ========================= */}
         <Route
           path="/upload"
           element={
-            <Layout>
-              <Upload />
-            </Layout>
+            <ProtectedRoute>
+              <Layout>
+                <Upload />
+              </Layout>
+            </ProtectedRoute>
           }
         />
 
-
-        {/* Dataset Canvas */}
+        {/* =========================
+            PROTECTED DATA CANVAS
+            ========================= */}
         <Route
           path="/canvas"
           element={
-            <Layout>
-              <DataCanvas />
-            </Layout>
+            <ProtectedRoute>
+              <Layout>
+                <DataCanvas />
+              </Layout>
+            </ProtectedRoute>
           }
         />
 
-
-        {/* Data Overview */}
+        {/* =========================
+            PROTECTED OVERVIEW
+            ========================= */}
         <Route
           path="/overview"
           element={
-            <Layout>
-              <Overview />
-            </Layout>
+            <ProtectedRoute>
+              <Layout>
+                <Overview />
+              </Layout>
+            </ProtectedRoute>
           }
         />
 
-
-        {/* Profiling */}
+        {/* =========================
+            PROTECTED PROFILING
+            ========================= */}
         <Route
           path="/profiling"
           element={
-            <Layout>
-              <Profiling />
-            </Layout>
+            <ProtectedRoute>
+              <Layout>
+                <Profiling />
+              </Layout>
+            </ProtectedRoute>
           }
         />
 
-
-        {/* ML Risk Auditor - Task 2 */}
+        {/* =========================
+            PROTECTED RISKS
+            ========================= */}
         <Route
           path="/risks"
           element={
-            <Layout>
-              <Risks />
-            </Layout>
+            <ProtectedRoute>
+              <Layout>
+                <Risks />
+              </Layout>
+            </ProtectedRoute>
           }
         />
 
-
-        {/* Recommendations - Task 3 */}
+        {/* =========================
+            PROTECTED RECOMMENDATIONS
+            ========================= */}
         <Route
           path="/recommendations"
           element={
-            <Layout>
-              <Recommendations />
-            </Layout>
+            <ProtectedRoute>
+              <Layout>
+                <Recommendations />
+              </Layout>
+            </ProtectedRoute>
+          }
+        />
+
+        {/* =========================
+            PROTECTED VISUALIZATION
+            ========================= */}
+        <Route
+          path="/visualization"
+          element={
+            <ProtectedRoute>
+              <Layout>
+                <div className="p-6 text-white">
+                  Visualization
+                </div>
+              </Layout>
+            </ProtectedRoute>
+          }
+        />
+
+        {/* =========================
+            PROTECTED MODELING
+            ========================= */}
+        <Route
+          path="/modeling"
+          element={
+            <ProtectedRoute>
+              <Layout>
+                <div className="p-6 text-white">
+                  Modeling
+                </div>
+              </Layout>
+            </ProtectedRoute>
+          }
+        />
+
+        {/* =========================
+            PROTECTED HISTORY
+            ========================= */}
+        <Route
+          path="/history"
+          element={
+            <ProtectedRoute>
+              <Layout>
+                <div className="p-6 text-white">
+                  History
+                </div>
+              </Layout>
+            </ProtectedRoute>
           }
         />
 
