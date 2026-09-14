@@ -1,85 +1,159 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 
 import Layout from './components/layout/Layout'
+import ProtectedRoute from './components/auth/ProtectedRoute'
 
+import Landing from './pages/Landing'
 import Dashboard from './pages/Dashboard'
 import Upload from './pages/Upload'
 import Overview from './pages/Overview'
 import Profiling from './pages/Profiling'
 import Login from './pages/Login'
 import Register from './pages/Register'
-import DataCanvas from './pages/DataCanvas'
-import Risks from './pages/Risks'
 
 function App() {
   return (
     <BrowserRouter>
       <Routes>
 
-        {/* Authentication */}
-        <Route path="/" element={<Register />} />
-        <Route path="/register" element={<Register />} />
-        <Route path="/login" element={<Login />} />
+        {/* =========================
+            PUBLIC LANDING PAGE
+            ========================= */}
+        <Route
+          path="/"
+          element={<Landing />}
+        />
 
-        {/* Application */}
+        {/* =========================
+            AUTHENTICATION
+            ========================= */}
+        <Route
+          path="/login"
+          element={<Login />}
+        />
 
-        {/* Dashboard */}
+        <Route
+          path="/register"
+          element={<Register />}
+        />
+
+        {/* =========================
+            PROTECTED DASHBOARD
+            ========================= */}
         <Route
           path="/dashboard"
           element={
-            <Layout>
-              <Dashboard />
-            </Layout>
+            <ProtectedRoute>
+              <Layout>
+                <Dashboard />
+              </Layout>
+            </ProtectedRoute>
           }
         />
 
-        {/* Upload */}
+        {/* =========================
+            PROTECTED UPLOAD
+            ========================= */}
         <Route
           path="/upload"
           element={
-            <Layout>
-              <Upload />
-            </Layout>
+            <ProtectedRoute>
+              <Layout>
+                <Upload />
+              </Layout>
+            </ProtectedRoute>
           }
         />
 
-        {/* Dataset Canvas */}
-        <Route
-          path="/canvas"
-          element={
-            <Layout>
-              <DataCanvas />
-            </Layout>
-          }
-        />
-
-        {/* Data Overview */}
+        {/* =========================
+            PROTECTED OVERVIEW
+            ========================= */}
         <Route
           path="/overview"
           element={
-            <Layout>
-              <Overview />
-            </Layout>
+            <ProtectedRoute>
+              <Layout>
+                <Overview />
+              </Layout>
+            </ProtectedRoute>
           }
         />
 
-        {/* ML Risk Auditor */}
-        <Route
-          path="/risks"
-          element={
-            <Layout>
-              <Risks />
-            </Layout>
-          }
-        />
-
-        {/* Profiling */}
+        {/* =========================
+            PROTECTED PROFILING
+            ========================= */}
         <Route
           path="/profiling"
           element={
-            <Layout>
-              <Profiling />
-            </Layout>
+            <ProtectedRoute>
+              <Layout>
+                <Profiling />
+              </Layout>
+            </ProtectedRoute>
+          }
+        />
+
+        {/* =========================
+            PROTECTED PREPROCESSING
+            ========================= */}
+        <Route
+          path="/canvas"
+          element={
+            <ProtectedRoute>
+              <Layout>
+                <div className="p-6 text-white">
+                  Preprocessing
+                </div>
+              </Layout>
+            </ProtectedRoute>
+          }
+        />
+
+        {/* =========================
+            PROTECTED VISUALIZATION
+            ========================= */}
+        <Route
+          path="/visualization"
+          element={
+            <ProtectedRoute>
+              <Layout>
+                <div className="p-6 text-white">
+                  Visualization
+                </div>
+              </Layout>
+            </ProtectedRoute>
+          }
+        />
+
+        {/* =========================
+            PROTECTED MODELING
+            ========================= */}
+        <Route
+          path="/modeling"
+          element={
+            <ProtectedRoute>
+              <Layout>
+                <div className="p-6 text-white">
+                  Modeling
+                </div>
+              </Layout>
+            </ProtectedRoute>
+          }
+        />
+
+        {/* =========================
+            PROTECTED HISTORY
+            ========================= */}
+        <Route
+          path="/history"
+          element={
+            <ProtectedRoute>
+              <Layout>
+                <div className="p-6 text-white">
+                  History
+                </div>
+              </Layout>
+            </ProtectedRoute>
           }
         />
 

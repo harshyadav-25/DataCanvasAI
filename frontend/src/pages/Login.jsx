@@ -1,9 +1,9 @@
 import { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
-import DataPipeline3D from '../components/DataPipeline3D'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 
 function Login() {
   const navigate = useNavigate()
+  const location = useLocation()
 
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -18,19 +18,46 @@ function Login() {
       return
     }
 
-    // Temporary frontend-only login flow
-    navigate('/dashboard')
+    const storedUser = localStorage.getItem('datacanvas_user')
+
+    if (!storedUser) {
+      setError('No account found. Please create an account first.')
+      return
+    }
+
+    let user
+
+    try {
+      user = JSON.parse(storedUser)
+    } catch {
+      setError('Your saved account data is invalid. Please sign up again.')
+      localStorage.removeItem('datacanvas_user')
+      localStorage.removeItem('datacanvas_auth')
+      return
+    }
+
+    if (email !== user.email || password !== user.password) {
+      setError('Invalid email or password.')
+      return
+    }
+
+    // Login successful
+    localStorage.setItem('datacanvas_auth', 'true')
+
+    // Redirect to originally requested protected page
+    const redirectPath = location.state?.from || '/dashboard'
+
+    navigate(redirectPath, { replace: true })
   }
 
   return (
     <div className="relative min-h-screen overflow-hidden bg-[#050816] text-white">
 
       {/* =========================================
-          3D BACKGROUND
+          BACKGROUND
           ========================================= */}
       <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden">
 
-        {/* Blue Glow */}
         <div
           className="
             absolute
@@ -44,7 +71,6 @@ function Login() {
           "
         />
 
-        {/* Purple Glow */}
         <div
           className="
             absolute
@@ -58,7 +84,6 @@ function Login() {
           "
         />
 
-        {/* Bottom Glow */}
         <div
           className="
             absolute
@@ -72,12 +97,7 @@ function Login() {
           "
         />
 
-        {/* 3D Data Pipeline */}
-        <div className="absolute inset-0">
-          <DataPipeline3D />
-        </div>
-
-        {/* Grid */}
+        {/* No 3D background here to avoid WebGL context issues */}
         <div
           className="absolute inset-0 opacity-[0.035]"
           style={{
@@ -96,7 +116,6 @@ function Login() {
           }}
         />
 
-        {/* Dark Overlay */}
         <div className="absolute inset-0 bg-[#050816]/35" />
       </div>
 
@@ -115,20 +134,17 @@ function Login() {
           py-10
         "
       >
-
         <div className="w-full max-w-md">
 
-          {/* =========================================
-              LOGO
-              ========================================= */}
+          {/* Logo */}
           <div className="mb-8 flex items-center justify-center gap-3">
 
-            {/* Logo Icon */}
             <div
               className="
                 flex
                 h-10
                 w-10
+                shrink-0
                 items-center
                 justify-center
                 rounded-xl
@@ -152,7 +168,6 @@ function Login() {
               </svg>
             </div>
 
-            {/* Logo Text */}
             <span
               className="
                 bg-gradient-to-r
@@ -170,9 +185,7 @@ function Login() {
 
           </div>
 
-          {/* =========================================
-              LOGIN CARD
-              ========================================= */}
+          {/* Login Card */}
           <div
             className="
               relative
@@ -187,7 +200,6 @@ function Login() {
             "
           >
 
-            {/* Card Glow */}
             <div
               className="
                 pointer-events-none
@@ -204,17 +216,9 @@ function Login() {
 
             <div className="relative">
 
-              {/* =========================================
-                  HEADING
-                  ========================================= */}
+              {/* Heading */}
               <div>
-                <p
-                  className="
-                    text-sm
-                    font-semibold
-                    text-[#8177FF]
-                  "
-                >
+                <p className="text-sm font-semibold text-[#8177FF]">
                   Welcome back
                 </p>
 
@@ -238,13 +242,11 @@ function Login() {
                     text-[#8793AE]
                   "
                 >
-                  Continue to your DataCanvasAI workspace.
+                  Sign in to continue to your DataCanvasAI workspace.
                 </p>
               </div>
 
-              {/* =========================================
-                  ERROR
-                  ========================================= */}
+              {/* Error */}
               {error && (
                 <div
                   className="
@@ -263,9 +265,7 @@ function Login() {
                 </div>
               )}
 
-              {/* =========================================
-                  FORM
-                  ========================================= */}
+              {/* Form */}
               <form
                 onSubmit={handleSubmit}
                 className="mt-7 space-y-5"
@@ -287,9 +287,7 @@ function Login() {
                   <input
                     type="email"
                     value={email}
-                    onChange={(event) =>
-                      setEmail(event.target.value)
-                    }
+                    onChange={(event) => setEmail(event.target.value)}
                     placeholder="you@example.com"
                     className="
                       mt-2
@@ -316,42 +314,21 @@ function Login() {
 
                 {/* Password */}
                 <div>
-
-                  <div className="flex items-center justify-between">
-
-                    <label
-                      className="
-                        block
-                        text-sm
-                        font-medium
-                        text-[#D7DCEF]
-                      "
-                    >
-                      Password
-                    </label>
-
-                    <button
-                      type="button"
-                      className="
-                        text-xs
-                        font-medium
-                        text-[#8177FF]
-                        transition
-                        hover:text-[#A69EFF]
-                        hover:underline
-                      "
-                    >
-                      Forgot password?
-                    </button>
-
-                  </div>
+                  <label
+                    className="
+                      block
+                      text-sm
+                      font-medium
+                      text-[#D7DCEF]
+                    "
+                  >
+                    Password
+                  </label>
 
                   <input
                     type="password"
                     value={password}
-                    onChange={(event) =>
-                      setPassword(event.target.value)
-                    }
+                    onChange={(event) => setPassword(event.target.value)}
                     placeholder="Enter your password"
                     className="
                       mt-2
@@ -374,10 +351,9 @@ function Login() {
                       focus:ring-[#756BFF]/10
                     "
                   />
-
                 </div>
 
-                {/* Remember */}
+                {/* Remember Me */}
                 <label
                   className="
                     flex
@@ -390,11 +366,7 @@ function Login() {
                 >
                   <input
                     type="checkbox"
-                    className="
-                      h-4
-                      w-4
-                      accent-[#756BFF]
-                    "
+                    className="h-4 w-4 accent-[#756BFF]"
                   />
 
                   Remember me
@@ -425,9 +397,7 @@ function Login() {
 
               </form>
 
-              {/* =========================================
-                  REGISTER
-                  ========================================= */}
+              {/* Register */}
               <p
                 className="
                   mt-7
@@ -455,7 +425,7 @@ function Login() {
             </div>
           </div>
 
-          {/* Small Footer Text */}
+          {/* Footer */}
           <p className="mt-5 text-center text-xs text-[#4F5B76]">
             AI-powered dataset intelligence
           </p>
