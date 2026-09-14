@@ -1,6 +1,40 @@
-import { Link } from 'react-router-dom'
+import { useState } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
 
 function Header() {
+  const navigate = useNavigate()
+  const [showProfileMenu, setShowProfileMenu] = useState(false)
+
+  const storedUser = localStorage.getItem('datacanvas_user')
+
+  let user = {
+    name: 'User',
+    email: '',
+  }
+
+  if (storedUser) {
+    try {
+      user = JSON.parse(storedUser)
+    } catch {
+      user = {
+        name: 'User',
+        email: '',
+      }
+    }
+  }
+
+  const displayName = user.name || 'User'
+  const firstLetter = displayName.charAt(0).toUpperCase()
+
+  const handleLogout = () => {
+    localStorage.removeItem('datacanvas_auth')
+    localStorage.removeItem('datacanvas_user')
+
+    setShowProfileMenu(false)
+
+    navigate('/', { replace: true })
+  }
+
   return (
     <header
       className="
@@ -30,13 +64,14 @@ function Header() {
           lg:px-10
         "
       >
+
         {/* =========================================
             SEARCH
             ========================================= */}
 
         <div className="relative w-full max-w-md">
-          {/* Search Icon */}
 
+          {/* Search Icon */}
           <svg
             className="
               absolute
@@ -57,7 +92,6 @@ function Header() {
           </svg>
 
           {/* Search Input */}
-
           <input
             type="text"
             placeholder="Search datasets, tools or help..."
@@ -84,7 +118,6 @@ function Header() {
           />
 
           {/* Ctrl K */}
-
           <span
             className="
               absolute
@@ -112,73 +145,266 @@ function Header() {
         <div className="ml-6 flex items-center gap-5">
 
           {/* =========================================
-              GUEST PROFILE
+              NOTIFICATION BUTTON
               ========================================= */}
 
-          <Link
-            to="/login"
+          <button
+            type="button"
             className="
+              relative
               flex
+              h-10
+              w-10
               items-center
-              gap-3
+              justify-center
               rounded-xl
-              px-2
-              py-1
-              transition-all
-              duration-200
-              hover:bg-white/[0.06]
+              border
+              border-transparent
+              text-[#9AA5BF]
+              transition
+              hover:border-white/[0.08]
+              hover:bg-white/[0.05]
+              hover:text-white
             "
+            aria-label="Notifications"
           >
-            {/* Avatar */}
-
-            <div
-              className="
-                flex
-                h-9
-                w-9
-                items-center
-                justify-center
-                rounded-xl
-                border
-                border-[#756BFF]/30
-                bg-gradient-to-br
-                from-[#5148D8]
-                to-[#7C5CFF]
-                text-sm
-                font-semibold
-                text-white
-                shadow-[0_0_20px_rgba(81,72,216,0.25)]
-              "
-            >
-              G
-            </div>
-
-            {/* User Info */}
-
-            <div className="hidden sm:block">
-              <p className="text-sm font-semibold text-white">
-                Guest
-              </p>
-
-              <p className="text-xs text-[#7D89A8]">
-                Sign in
-              </p>
-            </div>
-
-            {/* Arrow */}
-
             <svg
-              className="h-4 w-4 text-[#7885A4]"
+              className="h-5 w-5"
               fill="none"
               stroke="currentColor"
-              strokeWidth="2"
+              strokeWidth="1.8"
               viewBox="0 0 24 24"
             >
-              <path d="m6 9 6 6 6-6" />
+              <path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9" />
+              <path d="M13.7 21a2 2 0 0 1-3.4 0" />
             </svg>
-          </Link>
+
+            {/* Notification Dot */}
+            <span
+              className="
+                absolute
+                right-2
+                top-2
+                h-2
+                w-2
+                rounded-full
+                bg-[#756BFF]
+                shadow-[0_0_8px_rgba(117,107,255,0.8)]
+              "
+            />
+          </button>
+
+          {/* =========================================
+              PROFILE
+              ========================================= */}
+
+          <div className="relative">
+
+            <button
+              type="button"
+              onClick={() =>
+                setShowProfileMenu((current) => !current)
+              }
+              className="
+                flex
+                items-center
+                gap-3
+                rounded-xl
+                px-2
+                py-1
+                transition-all
+                duration-200
+                hover:bg-white/[0.06]
+              "
+            >
+
+              {/* Avatar */}
+              <div
+                className="
+                  flex
+                  h-9
+                  w-9
+                  items-center
+                  justify-center
+                  rounded-xl
+                  border
+                  border-[#756BFF]/30
+                  bg-gradient-to-br
+                  from-[#5148D8]
+                  to-[#7C5CFF]
+                  text-sm
+                  font-semibold
+                  text-white
+                  shadow-[0_0_20px_rgba(81,72,216,0.25)]
+                "
+              >
+                {firstLetter}
+              </div>
+
+              {/* User Info */}
+              <div className="hidden text-left sm:block">
+                <p className="max-w-[130px] truncate text-sm font-semibold text-white">
+                  {displayName}
+                </p>
+
+                <p className="max-w-[160px] truncate text-xs text-[#7D89A8]">
+                  {user.email || 'Signed in'}
+                </p>
+              </div>
+
+              {/* Arrow */}
+              <svg
+                className={`
+                  h-4
+                  w-4
+                  text-[#7885A4]
+                  transition-transform
+                  duration-200
+                  ${showProfileMenu ? 'rotate-180' : ''}
+                `}
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                viewBox="0 0 24 24"
+              >
+                <path d="m6 9 6 6 6-6" />
+              </svg>
+            </button>
+
+            {/* =========================================
+                PROFILE DROPDOWN
+                ========================================= */}
+
+            {showProfileMenu && (
+              <div
+                className="
+                  absolute
+                  right-0
+                  mt-3
+                  w-64
+                  overflow-hidden
+                  rounded-2xl
+                  border
+                  border-white/[0.1]
+                  bg-[#080D1B]/95
+                  shadow-[0_20px_60px_rgba(0,0,0,0.45)]
+                  backdrop-blur-2xl
+                "
+              >
+
+                {/* User Info */}
+                <div className="border-b border-white/[0.08] px-4 py-4">
+                  <p className="truncate text-sm font-semibold text-white">
+                    {displayName}
+                  </p>
+
+                  <p className="mt-1 truncate text-xs text-[#7D89A8]">
+                    {user.email || 'Signed in'}
+                  </p>
+                </div>
+
+                {/* Dashboard */}
+                <Link
+                  to="/dashboard"
+                  onClick={() => setShowProfileMenu(false)}
+                  className="
+                    flex
+                    items-center
+                    gap-3
+                    px-4
+                    py-3
+                    text-sm
+                    font-medium
+                    text-[#D7DCEF]
+                    transition
+                    hover:bg-white/[0.05]
+                    hover:text-white
+                  "
+                >
+                  <svg
+                    className="h-4 w-4"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="1.8"
+                    viewBox="0 0 24 24"
+                  >
+                    <rect
+                      x="3"
+                      y="3"
+                      width="7"
+                      height="7"
+                      rx="1"
+                    />
+                    <rect
+                      x="14"
+                      y="3"
+                      width="7"
+                      height="7"
+                      rx="1"
+                    />
+                    <rect
+                      x="3"
+                      y="14"
+                      width="7"
+                      height="7"
+                      rx="1"
+                    />
+                    <rect
+                      x="14"
+                      y="14"
+                      width="7"
+                      height="7"
+                      rx="1"
+                    />
+                  </svg>
+
+                  Dashboard
+                </Link>
+
+                {/* Logout */}
+                <button
+                  type="button"
+                  onClick={handleLogout}
+                  className="
+                    flex
+                    w-full
+                    items-center
+                    gap-3
+                    border-t
+                    border-white/[0.08]
+                    px-4
+                    py-3
+                    text-left
+                    text-sm
+                    font-medium
+                    text-red-300
+                    transition
+                    hover:bg-red-500/[0.08]
+                    hover:text-red-200
+                  "
+                >
+                  <svg
+                    className="h-4 w-4"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="1.8"
+                    viewBox="0 0 24 24"
+                  >
+                    <path d="M10 17l5-5-5-5" />
+                    <path d="M15 12H3" />
+                    <path d="M21 4v16" />
+                  </svg>
+
+                  Logout
+                </button>
+
+              </div>
+            )}
+
+          </div>
 
         </div>
+
       </div>
     </header>
   )

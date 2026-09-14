@@ -1,7 +1,9 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 
 import Layout from './components/layout/Layout'
+import ProtectedRoute from './components/auth/ProtectedRoute'
 
+import Landing from './pages/Landing'
 import Dashboard from './pages/Dashboard'
 import Upload from './pages/Upload'
 import Overview from './pages/Overview'
@@ -13,47 +15,139 @@ function App() {
   return (
     <BrowserRouter>
       <Routes>
-        {/* Authentication */}
-        <Route path="/" element={<Register />} />
-        <Route path="/register" element={<Register />} />
-        <Route path="/login" element={<Login />} />
 
-        {/* Application */}
+        {/* =========================
+            PUBLIC LANDING PAGE
+            ========================= */}
+        <Route
+          path="/"
+          element={<Landing />}
+        />
+
+        {/* =========================
+            AUTHENTICATION
+            ========================= */}
+        <Route
+          path="/login"
+          element={<Login />}
+        />
+
+        <Route
+          path="/register"
+          element={<Register />}
+        />
+
+        {/* =========================
+            PROTECTED DASHBOARD
+            ========================= */}
         <Route
           path="/dashboard"
           element={
-            <Layout>
-              <Dashboard />
-            </Layout>
+            <ProtectedRoute>
+              <Layout>
+                <Dashboard />
+              </Layout>
+            </ProtectedRoute>
           }
         />
 
+        {/* =========================
+            PROTECTED UPLOAD
+            ========================= */}
         <Route
           path="/upload"
           element={
-            <Layout>
-              <Upload />
-            </Layout>
+            <ProtectedRoute>
+              <Layout>
+                <Upload />
+              </Layout>
+            </ProtectedRoute>
           }
         />
 
+        {/* =========================
+            PROTECTED OVERVIEW
+            ========================= */}
         <Route
           path="/overview"
           element={
-            <Layout>
-              <Overview />
-            </Layout>
+            <ProtectedRoute>
+              <Layout>
+                <Overview />
+              </Layout>
+            </ProtectedRoute>
+          }
+        />
+
+        {/* =========================
+            PROTECTED PROFILING
+            ========================= */}
+        <Route
+          path="/profiling"
+          element={
+            <ProtectedRoute>
+              <Layout>
+                <Profiling />
+              </Layout>
+            </ProtectedRoute>
+          }
+        />
+
+        {/* =========================
+            FUTURE PROTECTED PAGES
+            ========================= */}
+        <Route
+          path="/canvas"
+          element={
+            <ProtectedRoute>
+              <Layout>
+                <div className="p-6 text-white">
+                  Preprocessing
+                </div>
+              </Layout>
+            </ProtectedRoute>
           }
         />
 
         <Route
-          path="/profiling"
+          path="/visualization"
           element={
-            <Layout>
-              <Profiling />
-            </Layout>
+            <ProtectedRoute>
+              <Layout>
+                <div className="p-6 text-white">
+                  Visualization
+                </div>
+              </Layout>
+            </ProtectedRoute>
           }
         />
+
+        <Route
+          path="/modeling"
+          element={
+            <ProtectedRoute>
+              <Layout>
+                <div className="p-6 text-white">
+                  Modeling
+                </div>
+              </Layout>
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/history"
+          element={
+            <ProtectedRoute>
+              <Layout>
+                <div className="p-6 text-white">
+                  History
+                </div>
+              </Layout>
+            </ProtectedRoute>
+          }
+        />
+
       </Routes>
     </BrowserRouter>
   )
