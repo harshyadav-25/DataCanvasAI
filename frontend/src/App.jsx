@@ -94,7 +94,7 @@ function App() {
         />
 
         {/* =========================
-            FUTURE PROTECTED PAGES
+            PROTECTED PREPROCESSING
             ========================= */}
         <Route
           path="/canvas"
@@ -109,6 +109,9 @@ function App() {
           }
         />
 
+        {/* =========================
+            PROTECTED VISUALIZATION
+            ========================= */}
         <Route
           path="/visualization"
           element={
@@ -122,6 +125,9 @@ function App() {
           }
         />
 
+        {/* =========================
+            PROTECTED MODELING
+            ========================= */}
         <Route
           path="/modeling"
           element={
@@ -135,6 +141,9 @@ function App() {
           }
         />
 
+        {/* =========================
+            PROTECTED HISTORY
+            ========================= */}
         <Route
           path="/history"
           element={
