@@ -97,6 +97,27 @@ function Sidebar() {
       ),
     },
 
+    /* =====================================================
+       TASK 2 — ML RISK AUDITOR
+       ===================================================== */
+    {
+      name: 'Risk Auditor',
+      path: '/risks',
+      icon: (
+        <svg
+          className="h-5 w-5"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.8"
+          viewBox="0 0 24 24"
+        >
+          <path d="M12 3l8 4v5c0 4.8-3.4 8.1-8 9-4.6-.9-8-4.2-8-9V7l8-4z" />
+          <path d="M12 8v5" />
+          <circle cx="12" cy="16.5" r="0.8" fill="currentColor" stroke="none" />
+        </svg>
+      ),
+    },
+
     {
       name: 'Visualization',
       path: '/visualization',
@@ -242,6 +263,7 @@ function Sidebar() {
 
         </div>
       </div>
+
 
       {/* =====================================================
           NAVIGATION

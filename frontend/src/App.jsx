@@ -9,17 +9,21 @@ import Profiling from './pages/Profiling'
 import Login from './pages/Login'
 import Register from './pages/Register'
 import DataCanvas from './pages/DataCanvas'
+import Risks from './pages/Risks'
 
 function App() {
   return (
     <BrowserRouter>
       <Routes>
+
         {/* Authentication */}
         <Route path="/" element={<Register />} />
         <Route path="/register" element={<Register />} />
         <Route path="/login" element={<Login />} />
 
         {/* Application */}
+
+        {/* Dashboard */}
         <Route
           path="/dashboard"
           element={
@@ -29,6 +33,7 @@ function App() {
           }
         />
 
+        {/* Upload */}
         <Route
           path="/upload"
           element={
@@ -48,6 +53,7 @@ function App() {
           }
         />
 
+        {/* Data Overview */}
         <Route
           path="/overview"
           element={
@@ -57,6 +63,17 @@ function App() {
           }
         />
 
+        {/* ML Risk Auditor */}
+        <Route
+          path="/risks"
+          element={
+            <Layout>
+              <Risks />
+            </Layout>
+          }
+        />
+
+        {/* Profiling */}
         <Route
           path="/profiling"
           element={
@@ -65,6 +82,7 @@ function App() {
             </Layout>
           }
         />
+
       </Routes>
     </BrowserRouter>
   )
