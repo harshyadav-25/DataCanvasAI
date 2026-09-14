@@ -10,6 +10,9 @@ import Overview from './pages/Overview'
 import Profiling from './pages/Profiling'
 import Login from './pages/Login'
 import Register from './pages/Register'
+import DataCanvas from './pages/DataCanvas'
+import Risks from './pages/Risks'
+import Recommendations from './pages/Recommendations'
 
 function App() {
   return (
@@ -66,6 +69,20 @@ function App() {
         />
 
         {/* =========================
+            PROTECTED DATA CANVAS
+            ========================= */}
+        <Route
+          path="/canvas"
+          element={
+            <ProtectedRoute>
+              <Layout>
+                <DataCanvas />
+              </Layout>
+            </ProtectedRoute>
+          }
+        />
+
+        {/* =========================
             PROTECTED OVERVIEW
             ========================= */}
         <Route
@@ -94,16 +111,28 @@ function App() {
         />
 
         {/* =========================
-            PROTECTED PREPROCESSING
+            PROTECTED RISKS
             ========================= */}
         <Route
-          path="/canvas"
+          path="/risks"
           element={
             <ProtectedRoute>
               <Layout>
-                <div className="p-6 text-white">
-                  Preprocessing
-                </div>
+                <Risks />
+              </Layout>
+            </ProtectedRoute>
+          }
+        />
+
+        {/* =========================
+            PROTECTED RECOMMENDATIONS
+            ========================= */}
+        <Route
+          path="/recommendations"
+          element={
+            <ProtectedRoute>
+              <Layout>
+                <Recommendations />
               </Layout>
             </ProtectedRoute>
           }
