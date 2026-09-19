@@ -67,6 +67,29 @@ def simulate_transformation(
         working_dataframe[request.column] = column.fillna(
             most_frequent_value
         )
+    elif request.transformation == SimulationTransformation.MEAN_IMPUTATION:
+        column = working_dataframe[request.column]
+
+        if column.dropna().empty:
+            raise ValueError(
+                "Cannot perform mean imputation because the column "
+                "contains no valid numeric values."
+            )
+
+        if not pd.api.types.is_numeric_dtype(column):
+            raise ValueError(
+                "Mean imputation requires a numeric column."
+            )
+
+        mean_value = column.mean()
+
+        if pd.isna(mean_value):
+            raise ValueError(
+                "Cannot perform mean imputation because the column "
+                "contains no valid numeric values."
+            )
+
+        working_dataframe[request.column] = column.fillna(mean_value)
     else:
         raise ValueError(
             f"Unsupported transformation: {request.transformation}"

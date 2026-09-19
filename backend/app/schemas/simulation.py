@@ -6,6 +6,7 @@ from pydantic import BaseModel, Field
 class SimulationTransformation(str, Enum):
     MEDIAN_IMPUTATION = "MEDIAN_IMPUTATION"
     MOST_FREQUENT_IMPUTATION = "MOST_FREQUENT_IMPUTATION"
+    MEAN_IMPUTATION = "MEAN_IMPUTATION"
 
 
 class SimulationRequest(BaseModel):
