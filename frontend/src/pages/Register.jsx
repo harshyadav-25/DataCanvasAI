@@ -47,7 +47,6 @@ function Register() {
     }
 
     // Store registration details
-    // Temporary frontend-only authentication
     localStorage.setItem(
       'datacanvas_user',
       JSON.stringify({
@@ -57,8 +56,7 @@ function Register() {
       })
     )
 
-    // IMPORTANT:
-    // User is NOT authenticated after signup.
+    // User is NOT authenticated after signup
     localStorage.removeItem('datacanvas_auth')
 
     // Send user to Sign In page
@@ -67,18 +65,16 @@ function Register() {
 
   return (
     <div className="relative min-h-screen overflow-hidden bg-[#050816] text-white">
-
       {/* =========================================
           3D BACKGROUND
           ========================================= */}
       <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden">
-
         {/* Blue Glow */}
         <div
           className="
             absolute
-            -right-[15%]
             -top-[15%]
+            -right-[15%]
             h-[850px]
             w-[850px]
             rounded-full
@@ -91,8 +87,8 @@ function Register() {
         <div
           className="
             absolute
-            -left-[15%]
             top-[20%]
+            -left-[15%]
             h-[750px]
             w-[750px]
             rounded-full
@@ -146,25 +142,12 @@ function Register() {
       {/* =========================================
           REGISTER CONTENT
           ========================================= */}
-      <div
-        className="
-          relative
-          z-10
-          flex
-          min-h-screen
-          items-center
-          justify-center
-          px-4
-          py-10
-        "
-      >
+      <div className="relative z-10 flex min-h-screen items-center justify-center px-4 py-10">
         <div className="w-full max-w-md">
-
           {/* =========================================
               LOGO
               ========================================= */}
           <div className="mb-8 flex items-center justify-center gap-3">
-
             {/* Logo Icon */}
             <div
               className="
@@ -198,7 +181,7 @@ function Register() {
             {/* Logo Text */}
             <span
               className="
-                bg-gradient-to-r
+                bg-linear-to-r
                 from-[#8B7CFF]
                 via-[#756BFF]
                 to-[#38BDF8]
@@ -210,7 +193,6 @@ function Register() {
             >
               DataCanvasAI
             </span>
-
           </div>
 
           {/* =========================================
@@ -222,21 +204,20 @@ function Register() {
               overflow-hidden
               rounded-3xl
               border
-              border-white/[0.1]
+              border-white/10
               bg-[#080D1B]/70
               p-8
               shadow-[0_30px_100px_rgba(0,0,0,0.45)]
               backdrop-blur-2xl
             "
           >
-
             {/* Card Glow */}
             <div
               className="
                 pointer-events-none
                 absolute
-                -right-32
                 -top-32
+                -right-32
                 h-72
                 w-72
                 rounded-full
@@ -246,33 +227,17 @@ function Register() {
             />
 
             <div className="relative">
-
               {/* Heading */}
               <div>
                 <p className="text-sm font-semibold text-[#8177FF]">
                   Get started
                 </p>
 
-                <h1
-                  className="
-                    mt-2
-                    text-3xl
-                    font-bold
-                    tracking-tight
-                    text-white
-                  "
-                >
+                <h1 className="mt-2 text-3xl font-bold tracking-tight text-white">
                   Create your account
                 </h1>
 
-                <p
-                  className="
-                    mt-2
-                    text-sm
-                    leading-6
-                    text-[#8793AE]
-                  "
-                >
+                <p className="mt-2 text-sm leading-6 text-[#8793AE]">
                   Create your account before accessing your DataCanvasAI
                   workspace.
                 </p>
@@ -280,39 +245,16 @@ function Register() {
 
               {/* Error */}
               {error && (
-                <div
-                  className="
-                    mt-5
-                    rounded-xl
-                    border
-                    border-red-400/20
-                    bg-red-500/10
-                    px-4
-                    py-3
-                    text-sm
-                    text-red-300
-                  "
-                >
+                <div className="mt-5 rounded-xl border border-red-400/20 bg-red-500/10 px-4 py-3 text-sm text-red-300">
                   {error}
                 </div>
               )}
 
               {/* Form */}
-              <form
-                onSubmit={handleSubmit}
-                className="mt-7 space-y-5"
-              >
-
+              <form onSubmit={handleSubmit} className="mt-7 space-y-5">
                 {/* Name */}
                 <div>
-                  <label
-                    className="
-                      block
-                      text-sm
-                      font-medium
-                      text-[#D7DCEF]
-                    "
-                  >
+                  <label className="block text-sm font-medium text-[#D7DCEF]">
                     Full Name
                   </label>
 
@@ -327,8 +269,8 @@ function Register() {
                       w-full
                       rounded-xl
                       border
-                      border-white/[0.1]
-                      bg-white/[0.04]
+                      border-white/10
+                      bg-white/4
                       px-4
                       text-sm
                       text-white
@@ -337,7 +279,7 @@ function Register() {
                       backdrop-blur-md
                       transition
                       focus:border-[#756BFF]/60
-                      focus:bg-white/[0.06]
+                      focus:bg-white/6
                       focus:ring-2
                       focus:ring-[#756BFF]/10
                     "
@@ -346,14 +288,7 @@ function Register() {
 
                 {/* Email */}
                 <div>
-                  <label
-                    className="
-                      block
-                      text-sm
-                      font-medium
-                      text-[#D7DCEF]
-                    "
-                  >
+                  <label className="block text-sm font-medium text-[#D7DCEF]">
                     Email
                   </label>
 
@@ -368,8 +303,8 @@ function Register() {
                       w-full
                       rounded-xl
                       border
-                      border-white/[0.1]
-                      bg-white/[0.04]
+                      border-white/10
+                      bg-white/4
                       px-4
                       text-sm
                       text-white
@@ -378,7 +313,7 @@ function Register() {
                       backdrop-blur-md
                       transition
                       focus:border-[#756BFF]/60
-                      focus:bg-white/[0.06]
+                      focus:bg-white/6
                       focus:ring-2
                       focus:ring-[#756BFF]/10
                     "
@@ -387,14 +322,7 @@ function Register() {
 
                 {/* Password */}
                 <div>
-                  <label
-                    className="
-                      block
-                      text-sm
-                      font-medium
-                      text-[#D7DCEF]
-                    "
-                  >
+                  <label className="block text-sm font-medium text-[#D7DCEF]">
                     Password
                   </label>
 
@@ -409,8 +337,8 @@ function Register() {
                       w-full
                       rounded-xl
                       border
-                      border-white/[0.1]
-                      bg-white/[0.04]
+                      border-white/10
+                      bg-white/4
                       px-4
                       text-sm
                       text-white
@@ -419,7 +347,7 @@ function Register() {
                       backdrop-blur-md
                       transition
                       focus:border-[#756BFF]/60
-                      focus:bg-white/[0.06]
+                      focus:bg-white/6
                       focus:ring-2
                       focus:ring-[#756BFF]/10
                     "
@@ -428,14 +356,7 @@ function Register() {
 
                 {/* Confirm Password */}
                 <div>
-                  <label
-                    className="
-                      block
-                      text-sm
-                      font-medium
-                      text-[#D7DCEF]
-                    "
-                  >
+                  <label className="block text-sm font-medium text-[#D7DCEF]">
                     Confirm Password
                   </label>
 
@@ -452,8 +373,8 @@ function Register() {
                       w-full
                       rounded-xl
                       border
-                      border-white/[0.1]
-                      bg-white/[0.04]
+                      border-white/10
+                      bg-white/4
                       px-4
                       text-sm
                       text-white
@@ -462,7 +383,7 @@ function Register() {
                       backdrop-blur-md
                       transition
                       focus:border-[#756BFF]/60
-                      focus:bg-white/[0.06]
+                      focus:bg-white/6
                       focus:ring-2
                       focus:ring-[#756BFF]/10
                     "
@@ -476,7 +397,7 @@ function Register() {
                     h-11
                     w-full
                     rounded-xl
-                    bg-gradient-to-r
+                    bg-linear-to-r
                     from-[#5148D8]
                     to-[#756BFF]
                     text-sm
@@ -491,20 +412,11 @@ function Register() {
                 >
                   Create Account
                 </button>
-
               </form>
 
               {/* Login Link */}
-              <p
-                className="
-                  mt-7
-                  text-center
-                  text-sm
-                  text-[#7F8BA8]
-                "
-              >
+              <p className="mt-7 text-center text-sm text-[#7F8BA8]">
                 Already have an account?{' '}
-
                 <Link
                   to="/login"
                   className="
@@ -518,7 +430,6 @@ function Register() {
                   Sign in
                 </Link>
               </p>
-
             </div>
           </div>
 
@@ -526,7 +437,6 @@ function Register() {
           <p className="mt-5 text-center text-xs text-[#4F5B76]">
             AI-powered dataset intelligence
           </p>
-
         </div>
       </div>
     </div>
