@@ -53,7 +53,20 @@ def simulate_transformation(
         working_dataframe[request.column] = column.fillna(median_value)
 
         
+    elif request.transformation == SimulationTransformation.MOST_FREQUENT_IMPUTATION:
+        column = working_dataframe[request.column]
 
+        if column.dropna().empty:
+            raise ValueError(
+                "Cannot perform most-frequent imputation because the column "
+                "contains no valid values."
+            )
+
+        most_frequent_value = column.mode().iloc[0]
+
+        working_dataframe[request.column] = column.fillna(
+            most_frequent_value
+        )
     else:
         raise ValueError(
             f"Unsupported transformation: {request.transformation}"
