@@ -2,6 +2,7 @@ from fastapi import FastAPI, UploadFile, File, Request, Depends
 from fastapi.responses import JSONResponse
 
 from app.services.dataset_loader import load_dataset
+from app.api.recommendations import router as recommendations_router
 from app.services.dataset_validator import validate_dataset
 from app.schemas.dataset import DatasetUploadResponse
 from app.schemas.error import ErrorResponse
@@ -56,6 +57,7 @@ async def shutdown_event():
 
 # Include authentication router
 app.include_router(auth_router, tags=["Authentication"])
+app.include_router(recommendations_router)
 
 
 @app.exception_handler(UnsupportedFileTypeError)
