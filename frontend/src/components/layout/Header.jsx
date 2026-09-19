@@ -1,10 +1,18 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 
-function Header() {
+function Header({ sidebarOpen }) {
   const navigate = useNavigate()
 
   const [showProfileMenu, setShowProfileMenu] = useState(false)
+
+  const [isLightMode, setIsLightMode] = useState(() => {
+    return localStorage.getItem('datacanvas_theme') === 'light'
+  })
+
+  // =====================================================
+  // GET USER
+  // =====================================================
 
   const storedUser = localStorage.getItem('datacanvas_user')
 
@@ -27,6 +35,21 @@ function Header() {
   const displayName = user.name || 'User'
   const firstLetter = displayName.charAt(0).toUpperCase()
 
+  // =====================================================
+  // APPLY THEME
+  // =====================================================
+
+  useEffect(() => {
+    const theme = isLightMode ? 'light' : 'dark'
+
+    document.documentElement.setAttribute('data-theme', theme)
+    localStorage.setItem('datacanvas_theme', theme)
+  }, [isLightMode])
+
+  // =====================================================
+  // LOGOUT
+  // =====================================================
+
   const handleLogout = () => {
     localStorage.removeItem('datacanvas_auth')
     localStorage.removeItem('datacanvas_user')
@@ -36,45 +59,64 @@ function Header() {
     navigate('/', { replace: true })
   }
 
+  // =====================================================
+  // TOGGLE THEME
+  // =====================================================
+
+  const handleThemeToggle = () => {
+    setIsLightMode((current) => !current)
+  }
+
   return (
     <header
-      className="
+      className={`
         fixed
-        left-52
         right-0
         top-0
         z-50
-        h-17
+        h-[68px]
         border-b
         border-white/8
         bg-[#050816]/55
         backdrop-blur-xl
-      "
+        transition-[left]
+        duration-300
+        ease-in-out
+        ${sidebarOpen ? 'left-0 lg:left-52' : 'left-0'}
+      `}
     >
-      {/* =========================================
+      {/* =====================================================
           HEADER CONTENT
-          ========================================= */}
+          ===================================================== */}
 
       <div
-        className="
+        className={`
           flex
           h-full
           items-center
           justify-between
-          px-6
-          lg:px-10
-        "
+          pr-4
+          sm:pr-6
+          lg:pr-10
+          transition-[padding]
+          duration-300
+          ease-in-out
+          ${
+            sidebarOpen
+              ? 'pl-4 sm:pl-6 lg:pl-10'
+              : 'pl-16 sm:pl-16 lg:pl-16'
+          }
+        `}
       >
-
-        {/* =========================================
+        {/* =====================================================
             SEARCH
-            ========================================= */}
+            ===================================================== */}
 
         <div className="relative w-full max-w-md">
-
           {/* Search Icon */}
           <svg
             className="
+              pointer-events-none
               absolute
               left-3
               top-1/2
@@ -87,8 +129,13 @@ function Header() {
             stroke="currentColor"
             strokeWidth="2"
             viewBox="0 0 24 24"
+            aria-hidden="true"
           >
-            <circle cx="11" cy="11" r="7" />
+            <circle
+              cx="11"
+              cy="11"
+              r="7"
+            />
             <path d="m20 20-3.5-3.5" />
           </svg>
 
@@ -96,6 +143,7 @@ function Header() {
           <input
             type="text"
             placeholder="Search datasets, tools or help..."
+            aria-label="Search datasets, tools or help"
             className="
               h-10
               w-full
@@ -121,9 +169,11 @@ function Header() {
           {/* Ctrl K */}
           <span
             className="
+              pointer-events-none
               absolute
               right-3
               top-1/2
+              hidden
               -translate-y-1/2
               rounded-md
               border
@@ -133,74 +183,101 @@ function Header() {
               py-1
               text-xs
               text-[#7D89A8]
+              sm:block
             "
           >
             Ctrl K
           </span>
         </div>
 
-        {/* =========================================
+        {/* =====================================================
             RIGHT SIDE
-            ========================================= */}
+            ===================================================== */}
 
-        <div className="ml-6 flex items-center gap-5">
-
-          {/* =========================================
-              NOTIFICATION BUTTON
-              ========================================= */}
+        <div className="ml-3 flex shrink-0 items-center gap-2 sm:ml-6 sm:gap-5">
+          {/* =====================================================
+              DARK / LIGHT MODE
+              ===================================================== */}
 
           <button
             type="button"
+            onClick={handleThemeToggle}
             className="
               relative
               flex
               h-10
               w-10
+              shrink-0
               items-center
               justify-center
               rounded-xl
               border
               border-transparent
               text-[#9AA5BF]
-              transition
+              transition-all
+              duration-200
               hover:border-white/8
               hover:bg-white/5
               hover:text-white
+              focus:outline-none
+              focus:ring-2
+              focus:ring-[#635BFF]/40
             "
-            aria-label="Notifications"
+            aria-label={
+              isLightMode
+                ? 'Switch to dark mode'
+                : 'Switch to light mode'
+            }
+            title={
+              isLightMode
+                ? 'Switch to dark mode'
+                : 'Switch to light mode'
+            }
           >
-            <svg
-              className="h-5 w-5"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="1.8"
-              viewBox="0 0 24 24"
-            >
-              <path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9" />
-              <path d="M13.7 21a2 2 0 0 1-3.4 0" />
-            </svg>
-
-            {/* Notification Dot */}
-            <span
-              className="
-                absolute
-                right-2
-                top-2
-                h-2
-                w-2
-                rounded-full
-                bg-[#756BFF]
-                shadow-[0_0_8px_rgba(117,107,255,0.8)]
-              "
-            />
+            {isLightMode ? (
+              /* Sun */
+              <svg
+                className="h-5 w-5"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.8"
+                viewBox="0 0 24 24"
+                aria-hidden="true"
+              >
+                <circle
+                  cx="12"
+                  cy="12"
+                  r="4"
+                />
+                <path d="M12 2v2" />
+                <path d="M12 20v2" />
+                <path d="m4.93 4.93 1.42 1.42" />
+                <path d="m17.65 17.65 1.42 1.42" />
+                <path d="M2 12h2" />
+                <path d="M20 12h2" />
+                <path d="m6.35 17.65-1.42 1.42" />
+                <path d="m19.07 4.93-1.42 1.42" />
+              </svg>
+            ) : (
+              /* Moon */
+              <svg
+                className="h-5 w-5"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.8"
+                viewBox="0 0 24 24"
+                aria-hidden="true"
+              >
+                <path d="M21 12.8A8.5 8.5 0 1 1 11.2 3a6.8 6.8 0 0 0 9.8 9.8Z" />
+              </svg>
+            )}
           </button>
 
-          {/* =========================================
+          {/* =====================================================
               PROFILE
-              ========================================= */}
+              ===================================================== */}
 
           <div className="relative">
-
             <button
               type="button"
               onClick={() =>
@@ -209,22 +286,29 @@ function Header() {
               className="
                 flex
                 items-center
-                gap-3
+                gap-2
                 rounded-xl
                 px-2
                 py-1
                 transition-all
                 duration-200
                 hover:bg-white/6
+                focus:outline-none
+                focus:ring-2
+                focus:ring-[#635BFF]/40
+                sm:gap-3
               "
+              aria-label="Open profile menu"
+              aria-haspopup="menu"
+              aria-expanded={showProfileMenu}
             >
-
               {/* Avatar */}
               <div
                 className="
                   flex
                   h-9
                   w-9
+                  shrink-0
                   items-center
                   justify-center
                   rounded-xl
@@ -244,7 +328,6 @@ function Header() {
 
               {/* User Info */}
               <div className="hidden text-left sm:block">
-
                 <p className="max-w-32.5 truncate text-sm font-semibold text-white">
                   {displayName}
                 </p>
@@ -252,7 +335,6 @@ function Header() {
                 <p className="max-w-40 truncate text-xs text-[#7D89A8]">
                   {user.email || 'Signed in'}
                 </p>
-
               </div>
 
               {/* Arrow */}
@@ -269,15 +351,15 @@ function Header() {
                 stroke="currentColor"
                 strokeWidth="2"
                 viewBox="0 0 24 24"
+                aria-hidden="true"
               >
                 <path d="m6 9 6 6 6-6" />
               </svg>
-
             </button>
 
-            {/* =========================================
+            {/* =====================================================
                 PROFILE DROPDOWN
-                ========================================= */}
+                ===================================================== */}
 
             {showProfileMenu && (
               <div
@@ -294,11 +376,10 @@ function Header() {
                   shadow-[0_20px_60px_rgba(0,0,0,0.45)]
                   backdrop-blur-2xl
                 "
+                role="menu"
               >
-
                 {/* User Info */}
                 <div className="border-b border-white/8 px-4 py-4">
-
                   <p className="truncate text-sm font-semibold text-white">
                     {displayName}
                   </p>
@@ -306,7 +387,6 @@ function Header() {
                   <p className="mt-1 truncate text-xs text-[#7D89A8]">
                     {user.email || 'Signed in'}
                   </p>
-
                 </div>
 
                 {/* Dashboard */}
@@ -325,7 +405,12 @@ function Header() {
                     transition
                     hover:bg-white/5
                     hover:text-white
+                    focus:outline-none
+                    focus:ring-2
+                    focus:ring-inset
+                    focus:ring-[#635BFF]/40
                   "
+                  role="menuitem"
                 >
                   <svg
                     className="h-4 w-4"
@@ -333,6 +418,7 @@ function Header() {
                     stroke="currentColor"
                     strokeWidth="1.8"
                     viewBox="0 0 24 24"
+                    aria-hidden="true"
                   >
                     <rect
                       x="3"
@@ -341,7 +427,6 @@ function Header() {
                       height="7"
                       rx="1"
                     />
-
                     <rect
                       x="14"
                       y="3"
@@ -349,7 +434,6 @@ function Header() {
                       height="7"
                       rx="1"
                     />
-
                     <rect
                       x="3"
                       y="14"
@@ -357,7 +441,6 @@ function Header() {
                       height="7"
                       rx="1"
                     />
-
                     <rect
                       x="14"
                       y="14"
@@ -390,7 +473,12 @@ function Header() {
                     transition
                     hover:bg-red-500/8
                     hover:text-red-200
+                    focus:outline-none
+                    focus:ring-2
+                    focus:ring-inset
+                    focus:ring-red-400/30
                   "
+                  role="menuitem"
                 >
                   <svg
                     className="h-4 w-4"
@@ -398,6 +486,7 @@ function Header() {
                     stroke="currentColor"
                     strokeWidth="1.8"
                     viewBox="0 0 24 24"
+                    aria-hidden="true"
                   >
                     <path d="M10 17l5-5-5-5" />
                     <path d="M15 12H3" />
@@ -406,14 +495,10 @@ function Header() {
 
                   Logout
                 </button>
-
               </div>
             )}
-
           </div>
-
         </div>
-
       </div>
     </header>
   )
