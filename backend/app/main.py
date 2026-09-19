@@ -2,13 +2,14 @@ from fastapi import FastAPI, UploadFile, File, Request, Depends
 from fastapi.responses import JSONResponse
 
 from app.services.dataset_loader import load_dataset
+from app.api.risks import router as risks_router
 from app.api.recommendations import router as recommendations_router
 from app.services.dataset_validator import validate_dataset
 from app.schemas.dataset import DatasetUploadResponse
 from app.schemas.error import ErrorResponse
 from uuid import uuid4
 from app.models.dataset import DatasetRecord
-from app.services.dataset_registry import DatasetRegistry
+from app.services.registry import dataset_registry
 from app.exceptions.dataset import (
     UnsupportedFileTypeError,
     EmptyDatasetError,
@@ -21,6 +22,7 @@ from app.core.db import connect_to_mongo, close_mongo_connection
 from app.api.auth import router as auth_router
 from app.core.dependencies import get_current_user
 from fastapi.middleware.cors import CORSMiddleware
+
 
 
 MAX_UPLOAD_SIZE = 25 * 1024 * 1024
@@ -39,7 +41,7 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-dataset_registry = DatasetRegistry()
+
 
 
 # MongoDB connection events
@@ -58,6 +60,7 @@ async def shutdown_event():
 # Include authentication router
 app.include_router(auth_router, tags=["Authentication"])
 app.include_router(recommendations_router)
+app.include_router(risks_router)
 
 
 @app.exception_handler(UnsupportedFileTypeError)

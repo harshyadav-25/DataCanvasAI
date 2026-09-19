@@ -227,6 +227,29 @@ def detect_missing_value_risk(
         )
 
     return findings
+def detect_dataset_risks(
+    dataframe: pd.DataFrame,
+    target_column: str | None = None,
+) -> list[RiskFinding]:
+    findings: list[RiskFinding] = []
+
+    findings.extend(
+        detect_identifier_like_columns(dataframe)
+    )
+
+    findings.extend(
+        detect_missing_value_risk(dataframe)
+    )
+
+    if target_column is not None:
+        findings.extend(
+            detect_class_imbalance(
+                dataframe,
+                target_column,
+            )
+        )
+
+    return findings
 def test_low_missing_values_have_no_risk():
     dataframe = pd.DataFrame({
         "age": [21, 22, 23, 24, 25],

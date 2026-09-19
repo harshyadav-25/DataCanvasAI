@@ -6,6 +6,7 @@ from app.services.dataset_risk_engine import (
     detect_class_imbalance,
     detect_identifier_like_columns,
     detect_missing_value_risk,
+    detect_dataset_risks,
 )
 
 
@@ -234,3 +235,22 @@ def test_empty_dataframe_returns_no_missing_value_findings():
 
     assert findings == []
 
+def test_detect_dataset_risks_combines_findings():
+    dataframe = pd.DataFrame(
+        {
+            "user_id": [1, 2, 3, 4, 5],
+            "Age": [21, None, None, 24, 25],
+            "Target": [0, 0, 0, 1, 1],
+        }
+    )
+
+    findings = detect_dataset_risks(
+        dataframe,
+        target_column="Target",
+    )
+
+    risk_types = [finding.risk_type for finding in findings]
+
+    assert "IDENTIFIER_LIKE_COLUMN" in risk_types
+    assert "MISSING_VALUES" in risk_types
+    assert "CLASS_IMBALANCE" not in risk_types
