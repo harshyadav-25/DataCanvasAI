@@ -1,15 +1,16 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import { BrowserRouter, Route, Routes } from 'react-router-dom'
 
 import Layout from './components/layout/Layout'
 import ProtectedRoute from './components/auth/ProtectedRoute'
 
 import Landing from './pages/Landing'
+import Login from './pages/Login'
+import Register from './pages/Register'
+
 import Dashboard from './pages/Dashboard'
 import Upload from './pages/Upload'
 import Overview from './pages/Overview'
 import Profiling from './pages/Profiling'
-import Login from './pages/Login'
-import Register from './pages/Register'
 import DataCanvas from './pages/DataCanvas'
 import Risks from './pages/Risks'
 import Recommendations from './pages/Recommendations'
@@ -18,9 +19,11 @@ function App() {
   return (
     <BrowserRouter>
       <Routes>
+
         {/* =========================================
             PUBLIC LANDING PAGE
             ========================================= */}
+
         <Route
           path="/"
           element={<Landing />}
@@ -29,14 +32,15 @@ function App() {
         {/* =========================================
             AUTHENTICATION
             ========================================= */}
-        <Route
-          path="/register"
-          element={<Register />}
-        />
 
         <Route
           path="/login"
           element={<Login />}
+        />
+
+        <Route
+          path="/register"
+          element={<Register />}
         />
 
         {/* =========================================
@@ -44,6 +48,7 @@ function App() {
             ========================================= */}
 
         {/* Dashboard / Home */}
+
         <Route
           path="/dashboard"
           element={
@@ -56,6 +61,7 @@ function App() {
         />
 
         {/* Upload */}
+
         <Route
           path="/upload"
           element={
@@ -67,7 +73,8 @@ function App() {
           }
         />
 
-        {/* Data Overview */}
+        {/* Data Preview / Overview */}
+
         <Route
           path="/overview"
           element={
@@ -80,6 +87,7 @@ function App() {
         />
 
         {/* Profiling */}
+
         <Route
           path="/profiling"
           element={
@@ -92,6 +100,7 @@ function App() {
         />
 
         {/* Dataset Canvas / Preprocessing */}
+
         <Route
           path="/canvas"
           element={
@@ -104,6 +113,7 @@ function App() {
         />
 
         {/* ML Risk Auditor */}
+
         <Route
           path="/risks"
           element={
@@ -116,6 +126,7 @@ function App() {
         />
 
         {/* Recommendations */}
+
         <Route
           path="/recommendations"
           element={
@@ -127,7 +138,12 @@ function App() {
           }
         />
 
+        {/* =========================================
+            FUTURE APPLICATION MODULES
+            ========================================= */}
+
         {/* Visualization */}
+
         <Route
           path="/visualization"
           element={
@@ -142,6 +158,7 @@ function App() {
         />
 
         {/* Modeling */}
+
         <Route
           path="/modeling"
           element={
@@ -156,6 +173,7 @@ function App() {
         />
 
         {/* History */}
+
         <Route
           path="/history"
           element={
@@ -168,6 +186,7 @@ function App() {
             </ProtectedRoute>
           }
         />
+
       </Routes>
     </BrowserRouter>
   )

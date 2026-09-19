@@ -16,6 +16,7 @@ function Upload() {
   // =====================================================
   // VALIDATE FILE
   // =====================================================
+
   const validateFile = (selectedFile) => {
     if (!selectedFile) {
       return 'Please select a file.'
@@ -41,6 +42,7 @@ function Upload() {
   // =====================================================
   // SELECT FILE
   // =====================================================
+
   const selectFile = (selectedFile) => {
     const validationError = validateFile(selectedFile)
 
@@ -57,6 +59,7 @@ function Upload() {
   // =====================================================
   // FILE INPUT
   // =====================================================
+
   const handleFileChange = (event) => {
     const selectedFile = event.target.files?.[0]
     selectFile(selectedFile)
@@ -65,6 +68,7 @@ function Upload() {
   // =====================================================
   // DRAG & DROP
   // =====================================================
+
   const handleDragOver = (event) => {
     event.preventDefault()
     event.stopPropagation()
@@ -87,8 +91,20 @@ function Upload() {
   }
 
   // =====================================================
+  // KEYBOARD DROPZONE
+  // =====================================================
+
+  const handleDropzoneKeyDown = (event) => {
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault()
+      handleChooseFile()
+    }
+  }
+
+  // =====================================================
   // OPEN FILE PICKER
   // =====================================================
+
   const handleChooseFile = () => {
     fileInputRef.current?.click()
   }
@@ -96,6 +112,7 @@ function Upload() {
   // =====================================================
   // REMOVE FILE
   // =====================================================
+
   const handleRemoveFile = () => {
     setFile(null)
     setError('')
@@ -108,6 +125,7 @@ function Upload() {
   // =====================================================
   // UPLOAD DATASET
   // =====================================================
+
   const handleUpload = async () => {
     if (!file) {
       setError('Please select a CSV or XLSX file first.')
@@ -133,16 +151,15 @@ function Upload() {
         JSON.stringify(data)
       )
 
-      // Open Dataset Overview after successful upload
+      // Open Dataset Overview
       navigate('/overview')
     } catch (err) {
-      if (err.response?.data?.error?.message) {
-        setError(err.response.data.error.message)
-      } else if (err.response?.data?.message) {
-        setError(err.response.data.message)
-      } else {
-        setError('Unable to upload dataset. Please try again.')
-      }
+      setError(
+        err.userMessage ||
+        err.response?.data?.error?.message ||
+        err.response?.data?.message ||
+        'Unable to upload dataset. Please try again.'
+      )
     } finally {
       setIsUploading(false)
     }
@@ -151,6 +168,7 @@ function Upload() {
   // =====================================================
   // RETRY
   // =====================================================
+
   const handleRetry = () => {
     setError('')
   }
@@ -158,6 +176,7 @@ function Upload() {
   // =====================================================
   // FILE SIZE
   // =====================================================
+
   const formatFileSize = (size) => {
     if (size < 1024) {
       return `${size} B`
@@ -173,6 +192,7 @@ function Upload() {
   // =====================================================
   // FILE TYPE
   // =====================================================
+
   const getFileType = (fileName) => {
     const extension = fileName
       .split('.')
@@ -191,11 +211,12 @@ function Upload() {
   }
 
   return (
-    <div className="relative min-h-screen text-white">
+    <div className="relative min-h-screen w-full text-white">
       {/* =====================================================
           PAGE HEADER
           ===================================================== */}
-      <div className="relative z-10 max-w-4xl rounded-2xl border border-white/6 bg-[#050816]/15 px-5 py-4 backdrop-blur-sm">
+
+      <div className="relative z-10 mx-auto w-full max-w-4xl rounded-2xl border border-white/6 bg-[#050816]/15 px-5 py-4 backdrop-blur-sm">
         <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[#A69CFF]">
           Dataset Workspace
         </p>
@@ -216,21 +237,30 @@ function Upload() {
       {/* =====================================================
           UPLOAD CARD
           ===================================================== */}
-      <div className="relative z-10 mt-6 max-w-5xl">
+
+      <div className="relative z-10 mx-auto mt-6 w-full max-w-5xl">
         <div className="relative overflow-hidden rounded-[28px] border border-white/9 bg-[#090E1D]/55 p-6 shadow-[0_0_80px_rgba(37,99,235,0.08)] backdrop-blur-lg md:p-8">
+
           {/* Background Glows */}
-          <div className="pointer-events-none absolute -top-32 -right-32 h-[360px] w-[360px] rounded-full bg-[#5148D8]/12 blur-[120px]" />
+
+          <div className="pointer-events-none absolute -right-32 -top-32 h-[360px] w-[360px] rounded-full bg-[#5148D8]/12 blur-[120px]" />
 
           <div className="pointer-events-none absolute -bottom-32 -left-24 h-[320px] w-[320px] rounded-full bg-[#2563EB]/8 blur-[120px]" />
 
           {/* =================================================
               OUTER DROPZONE
               ================================================= */}
+
           <div
+            role="button"
+            tabIndex={0}
+            aria-label="Upload dataset. Press Enter or Space to choose a file."
+            aria-describedby="upload-supported-formats"
             onDrop={handleDrop}
             onDragOver={handleDragOver}
             onDragLeave={handleDragLeave}
             onClick={handleChooseFile}
+            onKeyDown={handleDropzoneKeyDown}
             className={`
               relative z-10
               flex min-h-[400px]
@@ -238,9 +268,16 @@ function Upload() {
               flex-col items-center justify-center
               rounded-[24px]
               border-2 border-dashed
-              px-6 py-10
+              px-4 py-8
               text-center
+              outline-none
               transition-all duration-300
+              focus-visible:ring-2
+              focus-visible:ring-[#8B82FF]/70
+              focus-visible:ring-offset-2
+              focus-visible:ring-offset-[#090E1D]
+              sm:px-6
+              sm:py-10
               md:min-h-[450px]
               ${
                 isDragging
@@ -252,14 +289,17 @@ function Upload() {
             {/* =================================================
                 INNER CUTOUT
                 ================================================= */}
+
             <div
               className={`
                 flex w-full max-w-2xl
                 flex-col items-center justify-center
                 rounded-2xl
                 border-2 border-dashed
-                px-8 py-14
+                px-5 py-12
                 transition-all duration-300
+                sm:px-8
+                sm:py-14
                 ${
                   isDragging
                     ? 'border-[#A497FF] bg-[#5148D8]/10 shadow-[inset_0_0_35px_rgba(81,72,216,0.08)]'
@@ -268,6 +308,7 @@ function Upload() {
               `}
             >
               {/* Upload Icon */}
+
               <div
                 className={`
                   flex h-[76px] w-[76px]
@@ -286,6 +327,7 @@ function Upload() {
                   stroke="currentColor"
                   strokeWidth="1.5"
                   viewBox="0 0 24 24"
+                  aria-hidden="true"
                 >
                   <path
                     d="M12 16V4"
@@ -307,25 +349,28 @@ function Upload() {
               </div>
 
               {/* Title */}
-              <h3 className="mt-6 text-2xl font-bold text-white md:text-3xl">
+
+              <h3 className="mt-6 text-center text-2xl font-bold text-white sm:text-2xl md:text-3xl">
                 {isDragging
                   ? 'Drop your dataset here'
                   : 'Drag & Drop your dataset here'}
               </h3>
 
               {/* Or */}
+
               <p className="mt-3 text-sm font-medium text-[#7F8AA4]">
                 or
               </p>
 
               {/* Choose File Button */}
+
               <button
                 type="button"
                 onClick={(event) => {
                   event.stopPropagation()
                   handleChooseFile()
                 }}
-                className="mt-5 inline-flex items-center gap-2 rounded-xl bg-linear-to-r from-[#5148D8] to-[#6D5CFF] px-7 py-3.5 text-sm font-semibold text-white shadow-[0_0_30px_rgba(81,72,216,0.25)] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_0_42px_rgba(81,72,216,0.4)]"
+                className="mt-5 inline-flex items-center gap-2 rounded-xl bg-linear-to-r from-[#5148D8] to-[#6D5CFF] px-6 py-3.5 text-sm font-semibold text-white shadow-[0_0_30px_rgba(81,72,216,0.25)] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_0_42px_rgba(81,72,216,0.4)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#A497FF]/70 focus-visible:ring-offset-2 focus-visible:ring-offset-[#080D1B] sm:px-7"
               >
                 <svg
                   className="h-4 w-4"
@@ -333,6 +378,7 @@ function Upload() {
                   stroke="currentColor"
                   strokeWidth="2"
                   viewBox="0 0 24 24"
+                  aria-hidden="true"
                 >
                   <path d="M12 16V4" />
                   <path d="M7 9l5-5 5 5" />
@@ -343,30 +389,41 @@ function Upload() {
               </button>
 
               {/* Supported Files */}
-              <p className="mt-4 text-xs text-white/50">
+
+              <p
+                id="upload-supported-formats"
+                className="mt-4 text-xs text-white/50"
+              >
                 CSV or XLSX • Maximum 25 MB
               </p>
             </div>
 
             {/* Hidden File Input */}
+
             <input
               ref={fileInputRef}
               type="file"
               accept=".csv,.xlsx"
               onChange={handleFileChange}
               className="hidden"
+              aria-label="Choose CSV or XLSX dataset"
             />
           </div>
 
           {/* =================================================
               SELECTED FILE
               ================================================= */}
+
           {file && (
             <div className="relative z-10 mt-7 w-full">
               <div className="rounded-2xl border border-[#4F8CFF]/20 bg-[#3158FF]/7 p-4 backdrop-blur-sm">
+
                 <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+
                   <div className="flex min-w-0 items-center gap-3">
+
                     {/* File Icon */}
+
                     <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[#3158FF]/10 text-[#73A4FF]">
                       <svg
                         className="h-5 w-5"
@@ -374,6 +431,7 @@ function Upload() {
                         stroke="currentColor"
                         strokeWidth="1.7"
                         viewBox="0 0 24 24"
+                        aria-hidden="true"
                       >
                         <path d="M5 4h9l5 5v11H5z" />
                         <path d="M14 4v5h5" />
@@ -381,6 +439,7 @@ function Upload() {
                     </div>
 
                     {/* File Details */}
+
                     <div className="min-w-0">
                       <p className="text-sm font-semibold text-white">
                         Selected file
@@ -394,25 +453,31 @@ function Upload() {
                         {getFileType(file.name)} • {formatFileSize(file.size)}
                       </p>
                     </div>
+
                   </div>
 
                   {/* Remove */}
+
                   <button
                     type="button"
                     onClick={handleRemoveFile}
-                    className="w-fit rounded-lg border border-white/8 px-3 py-2 text-xs font-semibold text-white/70 transition hover:bg-white/5 hover:text-white"
+                    className="w-fit rounded-lg border border-white/8 px-3 py-2 text-xs font-semibold text-white/70 transition hover:bg-white/5 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#A497FF]/70"
+                    aria-label={`Remove ${file.name}`}
                   >
                     Remove
                   </button>
+
                 </div>
               </div>
 
               {/* Upload Button */}
+
               <button
                 type="button"
                 onClick={handleUpload}
                 disabled={isUploading}
-                className="mt-4 inline-flex items-center gap-2 rounded-xl border border-[#22C55E]/25 bg-[#22C55E]/10 px-7 py-3.5 text-sm font-semibold text-[#5BE58A] transition-all duration-300 hover:-translate-y-0.5 hover:bg-[#22C55E]/15 disabled:cursor-not-allowed disabled:opacity-50"
+                className="mt-4 inline-flex items-center gap-2 rounded-xl border border-[#22C55E]/25 bg-[#22C55E]/10 px-7 py-3.5 text-sm font-semibold text-[#5BE58A] transition-all duration-300 hover:-translate-y-0.5 hover:bg-[#22C55E]/15 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5BE58A]/60 disabled:cursor-not-allowed disabled:opacity-50"
+                aria-busy={isUploading}
               >
                 {isUploading ? (
                   <>
@@ -420,6 +485,7 @@ function Upload() {
                       className="h-4 w-4 animate-spin"
                       fill="none"
                       viewBox="0 0 24 24"
+                      aria-hidden="true"
                     >
                       <circle
                         className="opacity-30"
@@ -447,6 +513,7 @@ function Upload() {
                       stroke="currentColor"
                       strokeWidth="2"
                       viewBox="0 0 24 24"
+                      aria-hidden="true"
                     >
                       <path d="M12 16V4" />
                       <path d="M7 9l5-5 5 5" />
@@ -463,14 +530,24 @@ function Upload() {
           {/* =================================================
               ERROR STATE
               ================================================= */}
+
           {error && (
-            <div className="relative z-10 mt-5 w-full rounded-2xl border border-red-400/20 bg-red-500/8 p-4">
+            <div
+              className="relative z-10 mt-5 w-full rounded-2xl border border-red-400/20 bg-red-500/8 p-4"
+              role="alert"
+              aria-live="polite"
+            >
               <div className="flex items-start gap-3">
-                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-red-500/10 text-red-300">
+
+                <div
+                  className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-red-500/10 text-red-300"
+                  aria-hidden="true"
+                >
                   !
                 </div>
 
                 <div className="min-w-0 flex-1">
+
                   <p className="text-sm font-semibold text-red-200">
                     Upload failed
                   </p>
@@ -482,14 +559,16 @@ function Upload() {
                   <button
                     type="button"
                     onClick={handleRetry}
-                    className="mt-3 text-xs font-semibold text-red-200 underline underline-offset-4 transition hover:text-white"
+                    className="mt-3 text-xs font-semibold text-red-200 underline underline-offset-4 transition hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-300"
                   >
                     Try again
                   </button>
+
                 </div>
               </div>
             </div>
           )}
+
         </div>
       </div>
     </div>
