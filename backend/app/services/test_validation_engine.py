@@ -1,5 +1,6 @@
 from app.schemas.target import TargetProblemType
 from app.services.validation_engine import get_models
+import app.services.validation_engine as validation_engine
 from sklearn.model_selection import KFold, StratifiedKFold
 from sklearn.metrics import (
     accuracy_score,
@@ -9,6 +10,8 @@ from sklearn.metrics import (
     recall_score,
 )
 import numpy as np
+import pandas as pd
+
 from sklearn.linear_model import LogisticRegression
 
 from app.schemas.target import TargetProblemType
@@ -20,6 +23,8 @@ from app.services.validation_engine import (
     calculate_classification_metrics,
     evaluate_model,
     cross_validate_models,
+    get_safe_n_splits,
+    cross_validate_with_preprocessing,
 )
 import pytest
 
@@ -349,4 +354,126 @@ def test_cross_validate_classification_models():
 
         assert "accuracy" in result["mean_metrics"]
         assert "f1" in result["mean_metrics"]
-        assert "roc_auc" in result["mean_metrics"]     
+        assert "roc_auc" in result["mean_metrics"]
+    
+def test_get_safe_n_splits_classification():
+    y = np.array([
+        0, 0, 0,
+        1, 1, 1,
+    ])
+
+    safe_splits = get_safe_n_splits(
+        y,
+        TargetProblemType.CLASSIFICATION,
+        requested_splits=5,
+    )
+
+    assert safe_splits == 3
+
+
+def test_get_safe_n_splits_classification_with_enough_samples():
+    y = np.array([
+        0, 0, 0, 0, 0,
+        1, 1, 1, 1, 1,
+    ])
+
+    safe_splits = get_safe_n_splits(
+        y,
+        TargetProblemType.CLASSIFICATION,
+        requested_splits=5,
+    )
+
+    assert safe_splits == 5
+
+
+def test_get_safe_n_splits_regression():
+    y = np.arange(20)
+
+    safe_splits = get_safe_n_splits(
+        y,
+        TargetProblemType.REGRESSION,
+        requested_splits=5,
+    )
+
+    assert safe_splits == 5
+
+
+def test_get_safe_n_splits_regression_small_dataset():
+    y = np.arange(3)
+
+    safe_splits = get_safe_n_splits(
+        y,
+        TargetProblemType.REGRESSION,
+        requested_splits=5,
+    )
+
+    assert safe_splits == 3
+    
+def test_cross_validate_with_preprocessing_classification():
+    dataframe = pd.DataFrame(
+        {
+            "Age": [20, 25, 30, 35, 40, 45, 50, 55],
+            "City": [
+                "Delhi",
+                "Mumbai",
+                "Delhi",
+                "Pune",
+                "Mumbai",
+                "Delhi",
+                "Pune",
+                "Mumbai",
+            ],
+            "Target": [0, 1, 0, 1, 0, 1, 0, 1],
+        }
+    )
+
+    results = cross_validate_with_preprocessing(
+        dataframe=dataframe,
+        target_column="Target",
+        problem_type=TargetProblemType.CLASSIFICATION,
+        n_splits=2,
+    )
+
+    assert results
+    assert "logistic_regression" in results
+
+    for model_result in results.values():
+        assert len(model_result["fold_metrics"]) == 2
+        assert "mean_metrics" in model_result
+        assert "std_metrics" in model_result
+        
+def test_cross_validate_with_preprocessing_fits_on_train_only(monkeypatch):
+    dataframe = pd.DataFrame(
+        {
+            "Age": [20, 25, 30, 35, 40, 45, 50, 55],
+            "City": [
+                "Delhi",
+                "Mumbai",
+                "Delhi",
+                "Pune",
+                "Mumbai",
+                "Delhi",
+                "Pune",
+                "Mumbai",
+            ],
+            "Target": [0, 1, 0, 1, 0, 1, 0, 1],
+        }
+    )
+
+original_engine = validation_engine.PreprocessingEngine
+
+class SpyPreprocessingEngine(original_engine):
+    def fit_transform(self, dataframe):
+        self.fit_indices = set(dataframe.index)
+        self.training_transform = True
+        return super().fit_transform(dataframe)
+
+    def transform(self, dataframe):
+        transform_indices = set(dataframe.index)
+
+        if not getattr(self, "training_transform", False):
+            assert self.fit_indices.isdisjoint(transform_indices)
+
+        self.training_transform = False
+
+        return super().transform(dataframe)
