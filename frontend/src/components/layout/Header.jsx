@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 
 function Header() {
   const navigate = useNavigate()
+
   const [showProfileMenu, setShowProfileMenu] = useState(false)
 
   const storedUser = localStorage.getItem('datacanvas_user')
@@ -39,13 +40,13 @@ function Header() {
     <header
       className="
         fixed
-        left-[208px]
+        left-52
         right-0
         top-0
         z-50
-        h-[68px]
+        h-17
         border-b
-        border-white/[0.08]
+        border-white/8
         bg-[#050816]/55
         backdrop-blur-xl
       "
@@ -100,8 +101,8 @@ function Header() {
               w-full
               rounded-xl
               border
-              border-white/[0.08]
-              bg-white/[0.04]
+              border-white/8
+              bg-white/4
               pl-10
               pr-16
               text-sm
@@ -111,7 +112,7 @@ function Header() {
               backdrop-blur-md
               transition
               focus:border-[#635BFF]/60
-              focus:bg-white/[0.06]
+              focus:bg-white/6
               focus:ring-2
               focus:ring-[#635BFF]/10
             "
@@ -126,8 +127,8 @@ function Header() {
               -translate-y-1/2
               rounded-md
               border
-              border-white/[0.08]
-              bg-white/[0.05]
+              border-white/8
+              bg-white/5
               px-2
               py-1
               text-xs
@@ -162,8 +163,8 @@ function Header() {
               border-transparent
               text-[#9AA5BF]
               transition
-              hover:border-white/[0.08]
-              hover:bg-white/[0.05]
+              hover:border-white/8
+              hover:bg-white/5
               hover:text-white
             "
             aria-label="Notifications"
@@ -214,7 +215,7 @@ function Header() {
                 py-1
                 transition-all
                 duration-200
-                hover:bg-white/[0.06]
+                hover:bg-white/6
               "
             >
 
@@ -229,7 +230,7 @@ function Header() {
                   rounded-xl
                   border
                   border-[#756BFF]/30
-                  bg-gradient-to-br
+                  bg-linear-to-br
                   from-[#5148D8]
                   to-[#7C5CFF]
                   text-sm
@@ -243,13 +244,15 @@ function Header() {
 
               {/* User Info */}
               <div className="hidden text-left sm:block">
-                <p className="max-w-[130px] truncate text-sm font-semibold text-white">
+
+                <p className="max-w-32.5 truncate text-sm font-semibold text-white">
                   {displayName}
                 </p>
 
-                <p className="max-w-[160px] truncate text-xs text-[#7D89A8]">
+                <p className="max-w-40 truncate text-xs text-[#7D89A8]">
                   {user.email || 'Signed in'}
                 </p>
+
               </div>
 
               {/* Arrow */}
@@ -269,6 +272,7 @@ function Header() {
               >
                 <path d="m6 9 6 6 6-6" />
               </svg>
+
             </button>
 
             {/* =========================================
@@ -285,7 +289,7 @@ function Header() {
                   overflow-hidden
                   rounded-2xl
                   border
-                  border-white/[0.1]
+                  border-white/10
                   bg-[#080D1B]/95
                   shadow-[0_20px_60px_rgba(0,0,0,0.45)]
                   backdrop-blur-2xl
@@ -293,7 +297,8 @@ function Header() {
               >
 
                 {/* User Info */}
-                <div className="border-b border-white/[0.08] px-4 py-4">
+                <div className="border-b border-white/8 px-4 py-4">
+
                   <p className="truncate text-sm font-semibold text-white">
                     {displayName}
                   </p>
@@ -301,6 +306,7 @@ function Header() {
                   <p className="mt-1 truncate text-xs text-[#7D89A8]">
                     {user.email || 'Signed in'}
                   </p>
+
                 </div>
 
                 {/* Dashboard */}
@@ -317,7 +323,7 @@ function Header() {
                     font-medium
                     text-[#D7DCEF]
                     transition
-                    hover:bg-white/[0.05]
+                    hover:bg-white/5
                     hover:text-white
                   "
                 >
@@ -335,6 +341,7 @@ function Header() {
                       height="7"
                       rx="1"
                     />
+
                     <rect
                       x="14"
                       y="3"
@@ -342,6 +349,7 @@ function Header() {
                       height="7"
                       rx="1"
                     />
+
                     <rect
                       x="3"
                       y="14"
@@ -349,6 +357,7 @@ function Header() {
                       height="7"
                       rx="1"
                     />
+
                     <rect
                       x="14"
                       y="14"
@@ -371,7 +380,7 @@ function Header() {
                     items-center
                     gap-3
                     border-t
-                    border-white/[0.08]
+                    border-white/8
                     px-4
                     py-3
                     text-left
@@ -379,7 +388,7 @@ function Header() {
                     font-medium
                     text-red-300
                     transition
-                    hover:bg-red-500/[0.08]
+                    hover:bg-red-500/8
                     hover:text-red-200
                   "
                 >

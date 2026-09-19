@@ -18,31 +18,32 @@ function App() {
   return (
     <BrowserRouter>
       <Routes>
-
-        {/* =========================
+        {/* =========================================
             PUBLIC LANDING PAGE
-            ========================= */}
+            ========================================= */}
         <Route
           path="/"
           element={<Landing />}
         />
 
-        {/* =========================
+        {/* =========================================
             AUTHENTICATION
-            ========================= */}
-        <Route
-          path="/login"
-          element={<Login />}
-        />
-
+            ========================================= */}
         <Route
           path="/register"
           element={<Register />}
         />
 
-        {/* =========================
-            PROTECTED DASHBOARD
-            ========================= */}
+        <Route
+          path="/login"
+          element={<Login />}
+        />
+
+        {/* =========================================
+            PROTECTED APPLICATION
+            ========================================= */}
+
+        {/* Dashboard / Home */}
         <Route
           path="/dashboard"
           element={
@@ -54,9 +55,7 @@ function App() {
           }
         />
 
-        {/* =========================
-            PROTECTED UPLOAD
-            ========================= */}
+        {/* Upload */}
         <Route
           path="/upload"
           element={
@@ -68,23 +67,7 @@ function App() {
           }
         />
 
-        {/* =========================
-            PROTECTED DATA CANVAS
-            ========================= */}
-        <Route
-          path="/canvas"
-          element={
-            <ProtectedRoute>
-              <Layout>
-                <DataCanvas />
-              </Layout>
-            </ProtectedRoute>
-          }
-        />
-
-        {/* =========================
-            PROTECTED OVERVIEW
-            ========================= */}
+        {/* Data Overview */}
         <Route
           path="/overview"
           element={
@@ -96,9 +79,7 @@ function App() {
           }
         />
 
-        {/* =========================
-            PROTECTED PROFILING
-            ========================= */}
+        {/* Profiling */}
         <Route
           path="/profiling"
           element={
@@ -110,9 +91,19 @@ function App() {
           }
         />
 
-        {/* =========================
-            PROTECTED RISKS
-            ========================= */}
+        {/* Dataset Canvas / Preprocessing */}
+        <Route
+          path="/canvas"
+          element={
+            <ProtectedRoute>
+              <Layout>
+                <DataCanvas />
+              </Layout>
+            </ProtectedRoute>
+          }
+        />
+
+        {/* ML Risk Auditor */}
         <Route
           path="/risks"
           element={
@@ -124,9 +115,7 @@ function App() {
           }
         />
 
-        {/* =========================
-            PROTECTED RECOMMENDATIONS
-            ========================= */}
+        {/* Recommendations */}
         <Route
           path="/recommendations"
           element={
@@ -138,9 +127,7 @@ function App() {
           }
         />
 
-        {/* =========================
-            PROTECTED VISUALIZATION
-            ========================= */}
+        {/* Visualization */}
         <Route
           path="/visualization"
           element={
@@ -154,9 +141,7 @@ function App() {
           }
         />
 
-        {/* =========================
-            PROTECTED MODELING
-            ========================= */}
+        {/* Modeling */}
         <Route
           path="/modeling"
           element={
@@ -170,9 +155,7 @@ function App() {
           }
         />
 
-        {/* =========================
-            PROTECTED HISTORY
-            ========================= */}
+        {/* History */}
         <Route
           path="/history"
           element={
@@ -185,7 +168,6 @@ function App() {
             </ProtectedRoute>
           }
         />
-
       </Routes>
     </BrowserRouter>
   )

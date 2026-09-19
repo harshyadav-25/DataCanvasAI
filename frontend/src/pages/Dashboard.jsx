@@ -21,7 +21,7 @@ function Dashboard() {
         {/* =========================
             WELCOME HEADER
             ========================= */}
-        <section className="relative mb-7 overflow-hidden rounded-3xl border border-white/[0.08] bg-gradient-to-br from-[#111936] via-[#0C1226] to-[#090E1D] p-7 shadow-[0_25px_80px_rgba(0,0,0,0.2)] md:p-9">
+        <section className="relative mb-7 overflow-hidden rounded-3xl border border-white/8 bg-linear-to-br from-[#111936] via-[#0C1226] to-[#090E1D] p-7 shadow-[0_25px_80px_rgba(0,0,0,0.2)] md:p-9">
 
           <div className="pointer-events-none absolute -right-24 -top-24 h-72 w-72 rounded-full bg-[#675CFF]/15 blur-[110px]" />
 
@@ -46,7 +46,7 @@ function Dashboard() {
 
             <Link
               to="/upload"
-              className="inline-flex w-fit items-center gap-2 rounded-xl bg-gradient-to-r from-[#5148D8] to-[#756BFF] px-5 py-3 text-sm font-semibold text-white shadow-[0_0_30px_rgba(81,72,216,0.25)] transition duration-300 hover:-translate-y-0.5 hover:shadow-[0_0_40px_rgba(81,72,216,0.35)]"
+              className="inline-flex w-fit items-center gap-2 rounded-xl bg-linear-to-r from-[#5148D8] to-[#756BFF] px-5 py-3 text-sm font-semibold text-white shadow-[0_0_30px_rgba(81,72,216,0.25)] transition duration-300 hover:-translate-y-0.5 hover:shadow-[0_0_40px_rgba(81,72,216,0.35)]"
             >
               Upload Dataset
               <span className="text-lg">→</span>
@@ -61,7 +61,7 @@ function Dashboard() {
         <section className="mb-7 grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-4">
 
           {/* Rows */}
-          <div className="rounded-2xl border border-white/[0.08] bg-white/[0.035] p-5 shadow-lg">
+          <div className="rounded-2xl border border-white/8 bg-white/3.5 p-5 shadow-lg">
             <div className="flex items-center justify-between">
               <span className="text-sm text-slate-400">
                 Total Rows
@@ -82,7 +82,7 @@ function Dashboard() {
           </div>
 
           {/* Columns */}
-          <div className="rounded-2xl border border-white/[0.08] bg-white/[0.035] p-5 shadow-lg">
+          <div className="rounded-2xl border border-white/8 bg-white/3.5 p-5 shadow-lg">
             <div className="flex items-center justify-between">
               <span className="text-sm text-slate-400">
                 Total Columns
@@ -103,7 +103,7 @@ function Dashboard() {
           </div>
 
           {/* Issues */}
-          <div className="rounded-2xl border border-white/[0.08] bg-white/[0.035] p-5 shadow-lg">
+          <div className="rounded-2xl border border-white/8 bg-white/3.5 p-5 shadow-lg">
             <div className="flex items-center justify-between">
               <span className="text-sm text-slate-400">
                 Issues
@@ -124,7 +124,7 @@ function Dashboard() {
           </div>
 
           {/* Readiness */}
-          <div className="rounded-2xl border border-white/[0.08] bg-white/[0.035] p-5 shadow-lg">
+          <div className="rounded-2xl border border-white/8 bg-white/3.5 p-5 shadow-lg">
             <div className="flex items-center justify-between">
               <span className="text-sm text-slate-400">
                 ML Readiness
@@ -149,7 +149,7 @@ function Dashboard() {
         {/* =========================
             CURRENT DATASET
             ========================= */}
-        <section className="mb-7 rounded-2xl border border-white/[0.08] bg-white/[0.035] p-6 shadow-lg">
+        <section className="mb-7 rounded-2xl border border-white/8 bg-white/3.5 p-6 shadow-lg">
 
           <div className="flex flex-col justify-between gap-6 lg:flex-row lg:items-center">
 
@@ -172,14 +172,14 @@ function Dashboard() {
 
               <Link
                 to="/upload"
-                className="rounded-xl bg-gradient-to-r from-[#5148D8] to-[#756BFF] px-5 py-3 text-sm font-semibold text-white transition hover:-translate-y-0.5"
+                className="rounded-xl bg-linear-to-r from-[#5148D8] to-[#756BFF] px-5 py-3 text-sm font-semibold text-white transition hover:-translate-y-0.5"
               >
                 Upload Dataset
               </Link>
 
               <Link
                 to="/overview"
-                className="rounded-xl border border-white/[0.08] bg-white/[0.03] px-5 py-3 text-sm font-semibold text-slate-300 transition hover:bg-white/[0.06] hover:text-white"
+                className="rounded-xl border border-white/8 bg-white/3.5 px-5 py-3 text-sm font-semibold text-slate-300 transition hover:bg-white/6 hover:text-white"
               >
                 View Overview
               </Link>
@@ -195,7 +195,7 @@ function Dashboard() {
         <section className="mb-7 grid grid-cols-1 gap-6 xl:grid-cols-2">
 
           {/* ML READINESS */}
-          <div className="rounded-2xl border border-white/[0.08] bg-white/[0.035] p-6 shadow-lg">
+          <div className="rounded-2xl border border-white/8 bg-white/3.5 p-6 shadow-lg">
 
             <div className="flex items-start justify-between">
 
@@ -213,7 +213,7 @@ function Dashboard() {
                 </p>
               </div>
 
-              <span className="rounded-full border border-white/[0.08] bg-white/[0.03] px-3 py-1 text-xs text-slate-500">
+              <span className="rounded-full border border-white/8 bg-white/3.5 px-3 py-1 text-xs text-slate-500">
                 Pending
               </span>
 
@@ -221,7 +221,7 @@ function Dashboard() {
 
             <div className="mt-8 flex items-center gap-7">
 
-              <div className="flex h-32 w-32 shrink-0 items-center justify-center rounded-full border-[10px] border-white/[0.06]">
+              <div className="flex h-32 w-32 shrink-0 items-center justify-center rounded-full border-[10px] border-white/6">
                 <div className="text-center">
                   <p className="text-3xl font-bold">
                     —
@@ -244,6 +244,7 @@ function Dashboard() {
                     <div key={label}>
 
                       <div className="mb-2 flex justify-between">
+
                         <span className="text-sm text-slate-300">
                           {label}
                         </span>
@@ -251,9 +252,10 @@ function Dashboard() {
                         <span className="text-xs text-slate-500">
                           {value}
                         </span>
+
                       </div>
 
-                      <div className="h-2 rounded-full bg-white/[0.06]" />
+                      <div className="h-2 rounded-full bg-white/6" />
 
                     </div>
                   ))}
@@ -266,7 +268,7 @@ function Dashboard() {
           </div>
 
           {/* IMPORTANT ISSUES */}
-          <div className="rounded-2xl border border-white/[0.08] bg-white/[0.035] p-6 shadow-lg">
+          <div className="rounded-2xl border border-white/8 bg-white/3.5 p-6 shadow-lg">
 
             <div>
               <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#938AFF]">
@@ -284,7 +286,8 @@ function Dashboard() {
 
             <div className="mt-7 space-y-3">
 
-              <div className="rounded-xl border border-dashed border-white/[0.1] bg-[#050816]/40 p-5">
+              <div className="rounded-xl border border-dashed border-white/10 bg-[#050816]/40 p-5">
+
                 <div className="flex items-center gap-3">
 
                   <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-orange-500/10 text-orange-300">
@@ -302,6 +305,7 @@ function Dashboard() {
                   </div>
 
                 </div>
+
               </div>
 
             </div>
@@ -316,6 +320,7 @@ function Dashboard() {
         <section className="mb-7">
 
           <div className="mb-4">
+
             <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#938AFF]">
               Workspace
             </p>
@@ -323,6 +328,7 @@ function Dashboard() {
             <h2 className="mt-2 text-xl font-semibold">
               Quick Actions
             </h2>
+
           </div>
 
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
@@ -353,11 +359,13 @@ function Dashboard() {
                 icon: '⚙',
               },
             ].map((action) => (
+
               <Link
                 key={action.title}
                 to={action.path}
-                className="group rounded-2xl border border-white/[0.08] bg-white/[0.035] p-5 transition duration-300 hover:-translate-y-1 hover:border-[#756BFF]/25 hover:bg-white/[0.05]"
+                className="group rounded-2xl border border-white/8 bg-white/3.5 p-5 transition duration-300 hover:-translate-y-1 hover:border-[#756BFF]/25 hover:bg-white/5"
               >
+
                 <div className="flex items-center justify-between">
 
                   <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#756BFF]/10 text-lg text-[#A69CFF]">
@@ -377,7 +385,9 @@ function Dashboard() {
                 <p className="mt-2 text-sm leading-6 text-slate-500">
                   {action.description}
                 </p>
+
               </Link>
+
             ))}
 
           </div>
@@ -387,9 +397,10 @@ function Dashboard() {
         {/* =========================
             WORKFLOW
             ========================= */}
-        <section className="mb-7 rounded-2xl border border-white/[0.08] bg-white/[0.035] p-6 shadow-lg">
+        <section className="mb-7 rounded-2xl border border-white/8 bg-white/3.5 p-6 shadow-lg">
 
           <div>
+
             <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#938AFF]">
               Workflow
             </p>
@@ -401,6 +412,7 @@ function Dashboard() {
             <p className="mt-1 text-sm text-slate-400">
               Follow your dataset from upload to ML readiness.
             </p>
+
           </div>
 
           <div className="mt-7 grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-5">
@@ -412,10 +424,11 @@ function Dashboard() {
               ['04', 'Preprocessing', '/canvas'],
               ['05', 'ML Readiness', '/dashboard'],
             ].map(([number, title, path], index) => (
+
               <Link
                 key={number}
                 to={path}
-                className="relative rounded-xl border border-white/[0.07] bg-[#050816]/45 p-5 transition hover:border-[#756BFF]/25"
+                className="relative rounded-xl border border-white/7 bg-[#050816]/45 p-5 transition hover:border-[#756BFF]/25"
               >
 
                 <div className="flex items-center justify-between">
@@ -435,12 +448,13 @@ function Dashboard() {
                 </h3>
 
                 {index < 4 && (
-                  <div className="absolute -right-3 top-1/2 hidden h-5 w-5 -translate-y-1/2 items-center justify-center rounded-full border border-white/[0.08] bg-[#090E1D] text-xs text-slate-600 xl:flex">
+                  <div className="absolute -right-3 top-1/2 hidden h-5 w-5 -translate-y-1/2 items-center justify-center rounded-full border border-white/8 bg-[#090E1D] text-xs text-slate-600 xl:flex">
                     →
                   </div>
                 )}
 
               </Link>
+
             ))}
 
           </div>
@@ -450,9 +464,10 @@ function Dashboard() {
         {/* =========================
             RECENT ACTIVITY
             ========================= */}
-        <section className="rounded-2xl border border-white/[0.08] bg-white/[0.035] p-6 shadow-lg">
+        <section className="rounded-2xl border border-white/8 bg-white/3.5 p-6 shadow-lg">
 
           <div>
+
             <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#938AFF]">
               Activity
             </p>
@@ -464,9 +479,10 @@ function Dashboard() {
             <p className="mt-1 text-sm text-slate-400">
               Your latest dataset actions will appear here.
             </p>
+
           </div>
 
-          <div className="mt-6 rounded-xl border border-dashed border-white/[0.1] bg-[#050816]/40 px-6 py-10 text-center">
+          <div className="mt-6 rounded-xl border border-dashed border-white/10 bg-[#050816]/40 px-6 py-10 text-center">
 
             <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-[#756BFF]/10 text-xl text-[#A69CFF]">
               +
@@ -483,7 +499,7 @@ function Dashboard() {
 
             <Link
               to="/upload"
-              className="mt-5 inline-flex rounded-xl border border-white/[0.08] bg-white/[0.03] px-5 py-2.5 text-sm font-medium text-slate-300 transition hover:bg-white/[0.06] hover:text-white"
+              className="mt-5 inline-flex rounded-xl border border-white/8 bg-white/3.5 px-5 py-2.5 text-sm font-medium text-slate-300 transition hover:bg-white/6 hover:text-white"
             >
               Upload First Dataset
             </Link>

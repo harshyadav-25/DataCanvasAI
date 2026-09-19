@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
+import DataPipeline3D from '../components/DataPipeline3D'
 
 function Login() {
   const navigate = useNavigate()
@@ -97,7 +98,10 @@ function Login() {
           "
         />
 
-        {/* No 3D background here to avoid WebGL context issues */}
+        <div className="absolute inset-0">
+          <DataPipeline3D />
+        </div>
+
         <div
           className="absolute inset-0 opacity-[0.035]"
           style={{
