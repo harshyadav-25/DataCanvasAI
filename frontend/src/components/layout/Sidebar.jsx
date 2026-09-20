@@ -139,6 +139,27 @@ function Sidebar({ isOpen, onClose }) {
         </svg>
       ),
     },
+
+    {
+      name: 'Experiments',
+      path: '/experiments',
+      icon: (
+        <svg
+          className="h-5 w-5"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.8"
+          viewBox="0 0 24 24"
+          aria-hidden="true"
+        >
+          <path d="M9 3h6" />
+          <path d="M10 3v5l-5.5 9.2A2 2 0 0 0 6.2 20h11.6a2 2 0 0 0 1.7-2.8L14 8V3" />
+          <path d="M8 14h8" />
+          <path d="M9 17h6" />
+        </svg>
+      ),
+    },
+
     {
       name: 'Visualization',
       path: '/visualization',
@@ -157,6 +178,7 @@ function Sidebar({ isOpen, onClose }) {
         </svg>
       ),
     },
+
     {
       name: 'Modeling',
       path: '/modeling',
@@ -181,6 +203,7 @@ function Sidebar({ isOpen, onClose }) {
         </svg>
       ),
     },
+
     {
       name: 'History',
       path: '/history',

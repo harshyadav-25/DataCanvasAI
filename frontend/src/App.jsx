@@ -14,6 +14,7 @@ import Profiling from './pages/Profiling'
 import DataCanvas from './pages/DataCanvas'
 import Risks from './pages/Risks'
 import Recommendations from './pages/Recommendations'
+import ExperimentsPage from './pages/ExperimentsPage'
 
 function App() {
   return (
@@ -184,6 +185,17 @@ function App() {
                 </div>
               </Layout>
             </ProtectedRoute>
+          }
+        />
+
+
+        {/* What-If Simulator / Experiments - Task 4 */}
+        <Route
+          path="/experiments"
+          element={
+            <Layout>
+              <ExperimentsPage />
+            </Layout>
           }
         />
 
