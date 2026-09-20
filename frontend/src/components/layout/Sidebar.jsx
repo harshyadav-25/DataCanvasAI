@@ -200,6 +200,73 @@ function Sidebar({ isOpen, onClose }) {
       ),
     },
 
+    /* =====================================================
+       TASK 7 — READINESS
+       ===================================================== */
+    {
+      name: 'Readiness',
+      path: '/readiness',
+      icon: (
+        <svg
+          className="h-5 w-5"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.8"
+          viewBox="0 0 24 24"
+          aria-hidden="true"
+        >
+          <path d="M12 3l7 4v5c0 4.5-2.8 7.5-7 9-4.2-1.5-7-4.5-7-9V7l7-4z" />
+          <path d="M9 12l2 2 4-4" />
+        </svg>
+      ),
+    },
+
+    /* =====================================================
+       TASK 8 — PIPELINE / CODE
+       ===================================================== */
+    {
+      name: 'Pipeline / Code',
+      path: '/pipeline',
+      icon: (
+        <svg
+          className="h-5 w-5"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.8"
+          viewBox="0 0 24 24"
+          aria-hidden="true"
+        >
+          <rect x="3" y="4" width="7" height="6" rx="1.5" />
+          <rect x="14" y="14" width="7" height="6" rx="1.5" />
+          <path d="M10 7h4a3 3 0 0 1 3 3v4" />
+          <path d="M14 17h-4a3 3 0 0 1-3-3v-4" />
+        </svg>
+      ),
+    },
+
+    /* =====================================================
+       TASK 9 — REPORT
+       ===================================================== */
+    {
+      name: 'Report',
+      path: '/report',
+      icon: (
+        <svg
+          className="h-5 w-5"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.8"
+          viewBox="0 0 24 24"
+          aria-hidden="true"
+        >
+          <path d="M7 3h8l4 4v14H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z" />
+          <path d="M15 3v5h4" />
+          <path d="M8 12h8" />
+          <path d="M8 16h8" />
+        </svg>
+      ),
+    },
+
     {
       name: 'Visualization',
       path: '/visualization',
@@ -295,31 +362,10 @@ function Sidebar({ isOpen, onClose }) {
 
       <aside
         aria-label="Main navigation"
-        className={`
-          fixed
-          left-0
-          top-0
-          z-50
-          flex
-          h-screen
-          w-52
-          shrink-0
-          flex-col
-          overflow-hidden
-          border-r
-          border-white/8
-          bg-[#050816]/30
-          text-white
-          backdrop-blur-xl
-          transition-transform
-          duration-300
-          ease-in-out
-          ${
-            isOpen
-              ? 'translate-x-0'
-              : '-translate-x-full'
-          }
-        `}
+        className={
+          "fixed left-0 top-0 z-50 flex h-screen w-52 shrink-0 flex-col overflow-hidden border-r border-white/8 bg-slate-950/30 text-white backdrop-blur-xl transition-transform duration-300 ease-in-out " +
+          (isOpen ? "translate-x-0" : "-translate-x-full")
+        }
       >
         {/* =========================================
             LOGO SECTION

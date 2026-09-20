@@ -1,3 +1,4 @@
+
 import { BrowserRouter, Route, Routes } from 'react-router-dom'
 
 import Layout from './components/layout/Layout'
@@ -17,6 +18,9 @@ import Recommendations from './pages/Recommendations'
 import ExperimentsPage from './pages/ExperimentsPage'
 import ValidationPage from './pages/ValidationPage'
 import HistoryPage from './pages/HistoryPage'
+import ReadinessPage from './pages/ReadinessPage'
+import PipelinePage from './pages/PipelinePage'
+import ReportPage from './pages/ReportPage'
 
 function App() {
   return (
@@ -181,6 +185,51 @@ function App() {
             <ProtectedRoute>
               <Layout>
                 <HistoryPage />
+              </Layout>
+            </ProtectedRoute>
+          }
+        />
+
+        {/* =========================================
+            TASK 7 — READINESS
+            ========================================= */}
+
+        <Route
+          path="/readiness"
+          element={
+            <ProtectedRoute>
+              <Layout>
+                <ReadinessPage />
+              </Layout>
+            </ProtectedRoute>
+          }
+        />
+
+        {/* =========================================
+            TASK 8 — PIPELINE / CODE
+            ========================================= */}
+
+        <Route
+          path="/pipeline"
+          element={
+            <ProtectedRoute>
+              <Layout>
+                <PipelinePage />
+              </Layout>
+            </ProtectedRoute>
+          }
+        />
+
+        {/* =========================================
+            TASK 9 — REPORT
+            ========================================= */}
+
+        <Route
+          path="/report"
+          element={
+            <ProtectedRoute>
+              <Layout>
+                <ReportPage />
               </Layout>
             </ProtectedRoute>
           }

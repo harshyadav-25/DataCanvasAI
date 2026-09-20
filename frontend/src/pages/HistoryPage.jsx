@@ -1,408 +1,270 @@
-import { useMemo, useState } from 'react'
+import { useState } from 'react'
 
 const filters = [
-  { key: 'all', label: 'All' },
-  { key: 'Running', label: 'Running' },
-  { key: 'Completed', label: 'Completed' },
-  { key: 'Failed', label: 'Failed' },
+  'All',
+  'Running',
+  'Completed',
+  'Failed',
 ]
 
-function normalizeStatus(status) {
-  const value = String(status || '').toLowerCase()
-
-  if (value === 'running') return 'Running'
-  if (value === 'failed') return 'Failed'
-
-  return 'Completed'
-}
-
-function formatDate(timestamp) {
-  if (!timestamp) {
-    return 'Not available'
-  }
-
-  const date = new Date(timestamp)
-
-  if (Number.isNaN(date.getTime())) {
-    return 'Not available'
-  }
-
-  return date.toLocaleString()
-}
-
-function StatusBadge({ status }) {
-  const styles = {
-    Running:
-      'border-blue-300/30 bg-blue-300/10 text-blue-100',
-    Completed:
-      'border-emerald-300/30 bg-emerald-300/10 text-emerald-100',
-    Failed:
-      'border-red-300/30 bg-red-300/10 text-red-100',
-  }
-
+function EmptyState() {
   return (
-    <span
-      className={`inline-flex rounded-full border px-3 py-1 text-xs font-semibold ${
-        styles[status] ||
-        'border-white/20 bg-white/[0.05] text-white'
-      }`}
-    >
-      {status}
-    </span>
-  )
-}
-
-function EmptyState({ title, description }) {
-  return (
-    <div
-      className="
-        rounded-2xl
-        border
-        border-dashed
-        border-white/20
-        bg-white/[0.02]
-        p-12
-        text-center
-      "
-    >
-      <div
-        className="
-          mx-auto
-          flex
-          h-14
-          w-14
-          items-center
-          justify-center
-          rounded-xl
-          bg-white/[0.05]
-          text-2xl
-          text-white
-        "
-      >
-        ◎
+    <div className="rounded-2xl border border-dashed border-[#343C53] bg-[#0F1526]/80 px-6 py-14 text-center backdrop-blur-xl">
+      <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl border border-[#6557D8]/30 bg-[#6D5DF6]/10 text-[#9A8EFF]">
+        <svg
+          className="h-7 w-7"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.8"
+          viewBox="0 0 24 24"
+          aria-hidden="true"
+        >
+          <path d="M3 12a9 9 0 1 0 3-6.7" />
+          <path d="M3 5v5h5" />
+          <path d="M12 7v5l3 2" />
+        </svg>
       </div>
 
-      <h2 className="mt-5 text-lg font-semibold text-white">
-        {title}
+      <h2 className="mt-5 text-base font-semibold text-white">
+        No history available
       </h2>
 
-      <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-white">
-        {description}
+      <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-[#A7AFC3]">
+        Experiment and analysis history will appear here when real
+        backend results become available.
       </p>
     </div>
   )
 }
 
-function HistoryPage() {
-  /*
-    =========================================================
-    REAL DATA STRUCTURE
+function SummaryCard({ label, value }) {
+  return (
+    <div className="rounded-2xl border border-[#343C53] bg-[#10162A]/80 p-5 backdrop-blur-xl">
+      <p className="text-[11px] font-semibold uppercase tracking-wide text-[#8F7CFF]">
+        {label}
+      </p>
 
-    Actual history data will come from the API later.
+      <p className="mt-2 text-2xl font-bold text-white">
+        {value}
+      </p>
+    </div>
+  )
+}
 
-    Expected item structure:
+function HistoryItem({ item }) {
+  return (
+    <div className="rounded-2xl border border-[#343C53] bg-[#10162A]/80 p-5 backdrop-blur-xl">
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
 
-    {
-      id: '',
-      treatment: '',
-      status: 'Running' | 'Completed' | 'Failed',
-      createdAt: '',
-      source: ''
-    }
+        <div>
+          <p className="text-[11px] font-semibold uppercase tracking-wide text-[#8F7CFF]">
+            Experiment
+          </p>
 
-    No dummy data is used.
-    =========================================================
-  */
+          <h3 className="mt-1 text-base font-semibold text-white">
+            {item.treatment || 'Not available'}
+          </h3>
 
-  const [history] = useState([])
-  const [activeFilter, setActiveFilter] = useState('all')
+          <p className="mt-2 text-sm text-[#A7AFC3]">
+            {item.source || 'Source not available'}
+          </p>
+        </div>
 
-  const counts = useMemo(() => {
-    return {
-      all: history.length,
+        <span className="w-fit rounded-full border border-[#343C53] bg-[#12192B] px-3 py-1 text-[11px] font-semibold text-[#A7AFC3]">
+          {item.status || 'Not available'}
+        </span>
+      </div>
 
-      Running: history.filter(
-        (item) => normalizeStatus(item.status) === 'Running'
-      ).length,
+      <div className="mt-5 rounded-xl border border-[#252D42] bg-[#0A1020]/60 p-4">
+        <p className="text-[11px] font-semibold uppercase tracking-wide text-[#8F7CFF]">
+          Created
+        </p>
 
-      Completed: history.filter(
-        (item) => normalizeStatus(item.status) === 'Completed'
-      ).length,
+        <p className="mt-2 text-sm text-[#A7AFC3]">
+          {item.createdAt || 'Not available'}
+        </p>
+      </div>
+    </div>
+  )
+}
 
-      Failed: history.filter(
-        (item) => normalizeStatus(item.status) === 'Failed'
-      ).length,
-    }
-  }, [history])
+export default function HistoryPage() {
+  const [activeFilter, setActiveFilter] = useState('All')
 
-  const filteredHistory = useMemo(() => {
-    if (activeFilter === 'all') {
-      return history
-    }
+  // Real backend history data will be connected later.
+  // No demo or dummy history entries are used.
+  const history = []
 
-    return history.filter(
-      (item) =>
-        normalizeStatus(item.status) === activeFilter
-    )
-  }, [history, activeFilter])
+  const filteredHistory =
+    activeFilter === 'All'
+      ? history
+      : history.filter((item) => item.status === activeFilter)
 
-  const handleRetry = (id) => {
-    /*
-      Future implementation:
+  const summary = {
+    all: history.length,
+    running: history.filter((item) => item.status === 'Running').length,
+    completed: history.filter((item) => item.status === 'Completed').length,
+    failed: history.filter((item) => item.status === 'Failed').length,
+  }
 
-      - Send retry request to backend
-      - Update experiment status
-      - Refresh history
-    */
-
-    console.log('Retry requested for experiment:', id)
+  const handleRetry = () => {
+    console.log('Retry history request')
   }
 
   return (
-    <div className="min-h-full px-4 py-6 text-white sm:px-6 lg:px-8">
-      <div className="mx-auto max-w-7xl">
+    <div className="relative min-h-screen overflow-hidden rounded-3xl bg-[#070B16] px-4 py-6 text-white sm:px-6 lg:px-8">
 
-        {/* =====================================================
+      {/* Background glow */}
+
+      <div className="pointer-events-none absolute -left-24 -top-24 h-80 w-80 rounded-full bg-[#6D5DF6]/20 blur-3xl" />
+
+      <div className="pointer-events-none absolute -right-24 top-24 h-96 w-96 rounded-full bg-[#3A7BFF]/10 blur-3xl" />
+
+      <div className="pointer-events-none absolute bottom-0 left-1/3 h-64 w-64 rounded-full bg-[#8B5CF6]/10 blur-3xl" />
+
+      <div className="relative z-10 space-y-6">
+
+        {/* =========================================
             HEADER
-        ===================================================== */}
+            ========================================= */}
 
         <section>
-          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#B8B3FF]">
-            Experiment Tracking
-          </p>
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
 
-          <div className="mt-2 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
             <div>
-              <h1 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">
+              <p className="text-sm font-semibold tracking-wide text-[#8F7CFF]">
+                ACTIVITY
+              </p>
+
+              <h1 className="mt-2 text-3xl font-bold tracking-tight text-white sm:text-4xl">
                 History
               </h1>
 
-              <p className="mt-2 max-w-2xl text-sm leading-6 text-white sm:text-base">
-                Review previous experiment runs and their execution status.
+              <p className="mt-2 max-w-2xl text-sm leading-6 text-[#A7AFC3]">
+                Review previous experiments and analysis runs when real
+                history data is available.
               </p>
             </div>
 
-            <button
-              type="button"
-              disabled={!history.length}
-              className="
-                rounded-xl
-                border
-                border-white/10
-                bg-white/[0.05]
-                px-4
-                py-2.5
-                text-sm
-                font-semibold
-                text-white
-                transition
-                hover:bg-white/10
-                disabled:cursor-not-allowed
-                disabled:opacity-40
-              "
-            >
-              Clear History
-            </button>
+            <div className="w-fit rounded-2xl border border-[#6557D8]/30 bg-[#11172A]/80 px-4 py-3 backdrop-blur-xl">
+              <p className="text-[11px] font-semibold uppercase tracking-wide text-[#8F7CFF]">
+                History status
+              </p>
+
+              <p className="mt-1 text-sm font-semibold text-[#A7AFC3]">
+                Waiting for results
+              </p>
+            </div>
+
           </div>
         </section>
 
-        {/* =====================================================
+        {/* =========================================
             SUMMARY
-        ===================================================== */}
+            ========================================= */}
 
-        <section className="mt-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-          {[
-            {
-              label: 'Total Runs',
-              value: counts.all,
-            },
-            {
-              label: 'Running',
-              value: counts.Running,
-            },
-            {
-              label: 'Completed',
-              value: counts.Completed,
-            },
-            {
-              label: 'Failed',
-              value: counts.Failed,
-            },
-          ].map((item) => (
-            <div
-              key={item.label}
-              className="
-                rounded-2xl
-                border
-                border-white/10
-                bg-white/[0.04]
-                p-5
-              "
-            >
-              <p className="text-xs font-semibold uppercase tracking-wider text-white">
-                {item.label}
-              </p>
+        <section className="grid grid-cols-2 gap-4 xl:grid-cols-4">
+          <SummaryCard
+            label="Total"
+            value={summary.all}
+          />
 
-              <p className="mt-2 text-3xl font-bold text-white">
-                {item.value}
-              </p>
-            </div>
-          ))}
+          <SummaryCard
+            label="Running"
+            value={summary.running}
+          />
+
+          <SummaryCard
+            label="Completed"
+            value={summary.completed}
+          />
+
+          <SummaryCard
+            label="Failed"
+            value={summary.failed}
+          />
         </section>
 
-        {/* =====================================================
+        {/* =========================================
             FILTERS
-        ===================================================== */}
+            ========================================= */}
 
-        <section
-          className="
-            mt-8
-            rounded-2xl
-            border
-            border-white/10
-            bg-white/[0.04]
-            p-4
-          "
-        >
+        <section className="rounded-2xl border border-[#343C53] bg-[#10162A]/80 p-2 backdrop-blur-xl">
           <div className="flex flex-wrap gap-2">
-            {filters.map((filter) => {
-              const isActive =
-                activeFilter === filter.key
-
-              return (
-                <button
-                  key={filter.key}
-                  type="button"
-                  onClick={() =>
-                    setActiveFilter(filter.key)
-                  }
-                  className={`
-                    rounded-xl
-                    px-4
-                    py-2
-                    text-sm
-                    font-semibold
-                    transition
-
-                    ${
-                      isActive
-                        ? 'bg-[#5B56E8] text-white shadow-lg'
-                        : 'bg-white/[0.04] text-white hover:bg-white/[0.08]'
-                    }
-                  `}
-                >
-                  {filter.label}
-
-                  <span className="ml-2 text-white">
-                    {counts[filter.key]}
-                  </span>
-                </button>
-              )
-            })}
+            {filters.map((filter) => (
+              <button
+                key={filter}
+                type="button"
+                onClick={() => setActiveFilter(filter)}
+                className={`rounded-xl px-4 py-2.5 text-sm font-semibold transition ${
+                  activeFilter === filter
+                    ? 'bg-[#5148D8]/30 text-white shadow-[0_0_20px_rgba(81,72,216,0.12)]'
+                    : 'text-[#A7AFC3] hover:bg-white/5 hover:text-white'
+                }`}
+              >
+                {filter}
+              </button>
+            ))}
           </div>
         </section>
 
-        {/* =====================================================
+        {/* =========================================
             HISTORY CONTENT
-        ===================================================== */}
+            ========================================= */}
 
-        <section className="mt-6">
+        <section>
+          <div className="mb-4">
+            <h2 className="text-lg font-semibold text-white">
+              Activity history
+            </h2>
+
+            <p className="mt-1 text-sm text-[#8F98AD]">
+              Previous runs will be listed here when history data is
+              returned by the backend.
+            </p>
+          </div>
 
           {filteredHistory.length === 0 ? (
-            <EmptyState
-              title="No history available"
-              description="Experiment runs will appear here when real history data is available."
-            />
+            <EmptyState />
           ) : (
-            <div className="space-y-4">
-              {filteredHistory.map((item) => {
-                const status = normalizeStatus(item.status)
-
-                return (
-                  <article
-                    key={item.id}
-                    className="
-                      rounded-2xl
-                      border
-                      border-white/10
-                      bg-white/[0.04]
-                      p-5
-                      transition
-                      hover:bg-white/[0.06]
-                    "
-                  >
-                    <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-
-                      {/* Experiment Information */}
-
-                      <div className="min-w-0">
-                        <div className="flex flex-wrap items-center gap-3">
-                          <h2 className="text-base font-semibold text-white">
-                            {item.treatment || 'Experiment'}
-                          </h2>
-
-                          <StatusBadge status={status} />
-                        </div>
-
-                        <div className="mt-2 flex flex-wrap gap-x-5 gap-y-2 text-xs text-white">
-                          <span>
-                            Started:{' '}
-                            {formatDate(item.createdAt)}
-                          </span>
-
-                          <span>
-                            Source:{' '}
-                            {item.source || 'Not available'}
-                          </span>
-                        </div>
-                      </div>
-
-                      {/* Retry */}
-
-                      {status === 'Failed' && (
-                        <button
-                          type="button"
-                          onClick={() =>
-                            handleRetry(item.id)
-                          }
-                          className="
-                            rounded-xl
-                            border
-                            border-white/10
-                            bg-white/[0.05]
-                            px-4
-                            py-2
-                            text-sm
-                            font-semibold
-                            text-white
-                            transition
-                            hover:bg-white/10
-                          "
-                        >
-                          Retry
-                        </button>
-                      )}
-
-                      {/* Running */}
-
-                      {status === 'Running' && (
-                        <div className="flex items-center gap-2 text-sm text-white">
-                          <span className="h-2 w-2 animate-pulse rounded-full bg-blue-300" />
-                          Running experiment...
-                        </div>
-                      )}
-                    </div>
-                  </article>
-                )
-              })}
+            <div className="grid gap-5 xl:grid-cols-2">
+              {filteredHistory.map((item) => (
+                <HistoryItem
+                  key={item.id}
+                  item={item}
+                />
+              ))}
             </div>
           )}
+        </section>
 
+        {/* =========================================
+            DATA INTEGRATION
+            ========================================= */}
+
+        <section className="rounded-2xl border border-[#343C53] bg-[#10162A]/80 p-5 backdrop-blur-xl">
+          <div className="flex items-start gap-3">
+
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-[#7C6FFF]/30 bg-[#6D5DF6]/10 text-sm font-bold text-[#9A8EFF]">
+              i
+            </div>
+
+            <div>
+              <h2 className="text-sm font-semibold text-white">
+                Data integration
+              </h2>
+
+              <p className="mt-1 text-sm leading-6 text-[#A7AFC3]">
+                History records will be populated through the future
+                backend history response. The frontend does not create
+                sample or fabricated records.
+              </p>
+            </div>
+
+          </div>
         </section>
 
       </div>
     </div>
   )
 }
-
-export default HistoryPage
