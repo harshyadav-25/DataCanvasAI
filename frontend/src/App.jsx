@@ -1,3 +1,4 @@
+
 import { BrowserRouter, Route, Routes } from 'react-router-dom'
 
 import Layout from './components/layout/Layout'
@@ -15,6 +16,11 @@ import DataCanvas from './pages/DataCanvas'
 import Risks from './pages/Risks'
 import Recommendations from './pages/Recommendations'
 import ExperimentsPage from './pages/ExperimentsPage'
+import ValidationPage from './pages/ValidationPage'
+import HistoryPage from './pages/HistoryPage'
+import ReadinessPage from './pages/ReadinessPage'
+import PipelinePage from './pages/PipelinePage'
+import ReportPage from './pages/ReportPage'
 
 function App() {
   return (
@@ -140,6 +146,96 @@ function App() {
         />
 
         {/* =========================================
+            TASK 4 — WHAT-IF SIMULATOR
+            ========================================= */}
+
+        <Route
+          path="/experiments"
+          element={
+            <ProtectedRoute>
+              <Layout>
+                <ExperimentsPage />
+              </Layout>
+            </ProtectedRoute>
+          }
+        />
+
+        {/* =========================================
+            TASK 5 — VALIDATION
+            ========================================= */}
+
+        <Route
+          path="/validation"
+          element={
+            <ProtectedRoute>
+              <Layout>
+                <ValidationPage />
+              </Layout>
+            </ProtectedRoute>
+          }
+        />
+
+        {/* =========================================
+            TASK 6 — HISTORY
+            ========================================= */}
+
+        <Route
+          path="/history"
+          element={
+            <ProtectedRoute>
+              <Layout>
+                <HistoryPage />
+              </Layout>
+            </ProtectedRoute>
+          }
+        />
+
+        {/* =========================================
+            TASK 7 — READINESS
+            ========================================= */}
+
+        <Route
+          path="/readiness"
+          element={
+            <ProtectedRoute>
+              <Layout>
+                <ReadinessPage />
+              </Layout>
+            </ProtectedRoute>
+          }
+        />
+
+        {/* =========================================
+            TASK 8 — PIPELINE / CODE
+            ========================================= */}
+
+        <Route
+          path="/pipeline"
+          element={
+            <ProtectedRoute>
+              <Layout>
+                <PipelinePage />
+              </Layout>
+            </ProtectedRoute>
+          }
+        />
+
+        {/* =========================================
+            TASK 9 — REPORT
+            ========================================= */}
+
+        <Route
+          path="/report"
+          element={
+            <ProtectedRoute>
+              <Layout>
+                <ReportPage />
+              </Layout>
+            </ProtectedRoute>
+          }
+        />
+
+        {/* =========================================
             FUTURE APPLICATION MODULES
             ========================================= */}
 
@@ -170,32 +266,6 @@ function App() {
                 </div>
               </Layout>
             </ProtectedRoute>
-          }
-        />
-
-        {/* History */}
-
-        <Route
-          path="/history"
-          element={
-            <ProtectedRoute>
-              <Layout>
-                <div className="p-6 text-white">
-                  History
-                </div>
-              </Layout>
-            </ProtectedRoute>
-          }
-        />
-
-
-        {/* What-If Simulator / Experiments - Task 4 */}
-        <Route
-          path="/experiments"
-          element={
-            <Layout>
-              <ExperimentsPage />
-            </Layout>
           }
         />
 

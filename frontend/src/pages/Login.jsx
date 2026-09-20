@@ -1,18 +1,20 @@
-import { useState } from 'react'
-import { Link, useLocation, useNavigate } from 'react-router-dom'
-import DataPipeline3D from '../components/DataPipeline3D'
+import { useRef, useState } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
 
 function Login() {
   const navigate = useNavigate()
-  const location = useLocation()
 
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
+  const emailRef = useRef(null)
+  const passwordRef = useRef(null)
+
   const [error, setError] = useState('')
 
   const handleSubmit = (event) => {
     event.preventDefault()
     setError('')
+
+    const email = emailRef.current?.value.trim() || ''
+    const password = passwordRef.current?.value || ''
 
     if (!email || !password) {
       setError('Please enter your email and password.')
@@ -32,8 +34,10 @@ function Login() {
       user = JSON.parse(storedUser)
     } catch {
       setError('Your saved account data is invalid. Please sign up again.')
+
       localStorage.removeItem('datacanvas_user')
       localStorage.removeItem('datacanvas_auth')
+
       return
     }
 
@@ -42,90 +46,69 @@ function Login() {
       return
     }
 
-    // Login successful
     localStorage.setItem('datacanvas_auth', 'true')
 
-    // Redirect to originally requested protected page
-    const redirectPath = location.state?.from || '/dashboard'
-
-    navigate(redirectPath, { replace: true })
+    navigate('/dashboard', { replace: true })
   }
 
   return (
     <div className="relative min-h-screen overflow-hidden bg-[#050816] text-white">
 
       {/* =========================================
-          BACKGROUND
+          STATIC BACKGROUND
           ========================================= */}
-      <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden">
 
-        <div
-          className="
-            absolute
-            -right-[15%]
-            -top-[15%]
-            h-[850px]
-            w-[850px]
-            rounded-full
-            bg-[#3158FF]/20
-            blur-[180px]
-          "
-        />
+      <div
+        className="pointer-events-none fixed inset-0 z-0"
+        style={{
+          backgroundImage: `
+            radial-gradient(
+              circle at 85% 15%,
+              rgba(49, 88, 255, 0.18),
+              transparent 32%
+            ),
+            radial-gradient(
+              circle at 10% 35%,
+              rgba(124, 58, 237, 0.14),
+              transparent 30%
+            ),
+            radial-gradient(
+              circle at 45% 100%,
+              rgba(37, 99, 235, 0.10),
+              transparent 28%
+            )
+          `,
+        }}
+      />
 
-        <div
-          className="
-            absolute
-            -left-[15%]
-            top-[20%]
-            h-[750px]
-            w-[750px]
-            rounded-full
-            bg-[#7C3AED]/15
-            blur-[170px]
-          "
-        />
+      {/* Static grid */}
 
-        <div
-          className="
-            absolute
-            bottom-[-20%]
-            left-[25%]
-            h-[700px]
-            w-[700px]
-            rounded-full
-            bg-[#2563EB]/10
-            blur-[160px]
-          "
-        />
+      <div
+        className="pointer-events-none fixed inset-0 z-0 opacity-[0.035]"
+        style={{
+          backgroundImage: `
+            linear-gradient(
+              rgba(255,255,255,0.4) 1px,
+              transparent 1px
+            ),
+            linear-gradient(
+              90deg,
+              rgba(255,255,255,0.4) 1px,
+              transparent 1px
+            )
+          `,
+          backgroundSize: '50px 50px',
+        }}
+      />
 
-        <div className="absolute inset-0">
-          <DataPipeline3D />
-        </div>
+      {/* Dark overlay */}
 
-        <div
-          className="absolute inset-0 opacity-[0.035]"
-          style={{
-            backgroundImage: `
-              linear-gradient(
-                rgba(255,255,255,0.4) 1px,
-                transparent 1px
-              ),
-              linear-gradient(
-                90deg,
-                rgba(255,255,255,0.4) 1px,
-                transparent 1px
-              )
-            `,
-            backgroundSize: '50px 50px',
-          }}
-        />
-
-        <div className="absolute inset-0 bg-[#050816]/35" />
-      </div>
+      <div className="pointer-events-none fixed inset-0 z-0 bg-[#050816]/35" />
 
       {/* =========================================
           LOGIN CONTENT
           ========================================= */}
+
       <div
         className="
           relative
@@ -140,7 +123,10 @@ function Login() {
       >
         <div className="w-full max-w-md">
 
-          {/* Logo */}
+          {/* =========================================
+              LOGO
+              ========================================= */}
+
           <div className="mb-8 flex items-center justify-center gap-3">
 
             <div
@@ -156,7 +142,6 @@ function Login() {
                 border-[#756BFF]/30
                 bg-[#5148D8]/15
                 shadow-[0_0_30px_rgba(81,72,216,0.25)]
-                backdrop-blur-xl
               "
             >
               <svg
@@ -189,7 +174,10 @@ function Login() {
 
           </div>
 
-          {/* Login Card */}
+          {/* =========================================
+              LOGIN CARD
+              ========================================= */}
+
           <div
             className="
               relative
@@ -197,32 +185,36 @@ function Login() {
               rounded-3xl
               border
               border-white/[0.1]
-              bg-[#080D1B]/70
+              bg-[#080D1B]
               p-8
               shadow-[0_30px_100px_rgba(0,0,0,0.45)]
-              backdrop-blur-2xl
             "
           >
+
+            {/* Small static glow */}
 
             <div
               className="
                 pointer-events-none
                 absolute
-                -right-32
-                -top-32
-                h-72
-                w-72
+                -right-24
+                -top-24
+                h-64
+                w-64
                 rounded-full
-                bg-[#5148D8]/15
-                blur-[100px]
+                bg-[#5148D8]/10
               "
+              style={{
+                filter: 'blur(70px)',
+              }}
             />
 
             <div className="relative">
 
               {/* Heading */}
+
               <div>
-                <p className="text-sm font-semibold text-[#8177FF]">
+                <p className="text-sm font-semibold text-[#A9A4FF]">
                   Welcome back
                 </p>
 
@@ -243,7 +235,7 @@ function Login() {
                     mt-2
                     text-sm
                     leading-6
-                    text-[#8793AE]
+                    text-white
                   "
                 >
                   Sign in to continue to your DataCanvasAI workspace.
@@ -251,6 +243,7 @@ function Login() {
               </div>
 
               {/* Error */}
+
               {error && (
                 <div
                   className="
@@ -262,7 +255,7 @@ function Login() {
                     px-4
                     py-3
                     text-sm
-                    text-red-300
+                    text-red-200
                   "
                 >
                   {error}
@@ -270,29 +263,34 @@ function Login() {
               )}
 
               {/* Form */}
+
               <form
                 onSubmit={handleSubmit}
                 className="mt-7 space-y-5"
               >
 
                 {/* Email */}
+
                 <div>
                   <label
-                    className="
-                      block
-                      text-sm
-                      font-medium
-                      text-[#D7DCEF]
-                    "
+                    htmlFor="login-email"
+                    className="block text-sm font-medium text-white"
                   >
                     Email
                   </label>
 
                   <input
+                    ref={emailRef}
+                    id="login-email"
                     type="email"
-                    value={email}
-                    onChange={(event) => setEmail(event.target.value)}
+                    defaultValue=""
                     placeholder="you@example.com"
+                    autoComplete="email"
+                    onChange={() => {
+                      if (error) {
+                        setError('')
+                      }
+                    }}
                     className="
                       mt-2
                       h-11
@@ -305,9 +303,7 @@ function Login() {
                       text-sm
                       text-white
                       outline-none
-                      placeholder:text-[#65718E]
-                      backdrop-blur-md
-                      transition
+                      placeholder:text-white/60
                       focus:border-[#756BFF]/60
                       focus:bg-white/[0.06]
                       focus:ring-2
@@ -317,23 +313,27 @@ function Login() {
                 </div>
 
                 {/* Password */}
+
                 <div>
                   <label
-                    className="
-                      block
-                      text-sm
-                      font-medium
-                      text-[#D7DCEF]
-                    "
+                    htmlFor="login-password"
+                    className="block text-sm font-medium text-white"
                   >
                     Password
                   </label>
 
                   <input
+                    ref={passwordRef}
+                    id="login-password"
                     type="password"
-                    value={password}
-                    onChange={(event) => setPassword(event.target.value)}
+                    defaultValue=""
                     placeholder="Enter your password"
+                    autoComplete="current-password"
+                    onChange={() => {
+                      if (error) {
+                        setError('')
+                      }
+                    }}
                     className="
                       mt-2
                       h-11
@@ -346,9 +346,7 @@ function Login() {
                       text-sm
                       text-white
                       outline-none
-                      placeholder:text-[#65718E]
-                      backdrop-blur-md
-                      transition
+                      placeholder:text-white/60
                       focus:border-[#756BFF]/60
                       focus:bg-white/[0.06]
                       focus:ring-2
@@ -358,6 +356,7 @@ function Login() {
                 </div>
 
                 {/* Remember Me */}
+
                 <label
                   className="
                     flex
@@ -365,7 +364,7 @@ function Login() {
                     items-center
                     gap-3
                     text-sm
-                    text-[#8793AE]
+                    text-white
                   "
                 >
                   <input
@@ -377,6 +376,7 @@ function Login() {
                 </label>
 
                 {/* Submit */}
+
                 <button
                   type="submit"
                   className="
@@ -390,10 +390,7 @@ function Login() {
                     font-semibold
                     text-white
                     shadow-[0_0_30px_rgba(81,72,216,0.25)]
-                    transition-all
-                    duration-300
-                    hover:-translate-y-0.5
-                    hover:shadow-[0_0_45px_rgba(81,72,216,0.4)]
+                    hover:shadow-[0_0_40px_rgba(81,72,216,0.3)]
                   "
                 >
                   Sign In
@@ -402,12 +399,13 @@ function Login() {
               </form>
 
               {/* Register */}
+
               <p
                 className="
                   mt-7
                   text-center
                   text-sm
-                  text-[#7F8BA8]
+                  text-white
                 "
               >
                 Don't have an account?{' '}
@@ -416,9 +414,8 @@ function Login() {
                   to="/register"
                   className="
                     font-semibold
-                    text-[#8177FF]
-                    transition
-                    hover:text-[#A69EFF]
+                    text-[#A9A4FF]
+                    hover:text-[#C0BBFF]
                     hover:underline
                   "
                 >
@@ -430,7 +427,8 @@ function Login() {
           </div>
 
           {/* Footer */}
-          <p className="mt-5 text-center text-xs text-[#4F5B76]">
+
+          <p className="mt-5 text-center text-xs text-white">
             AI-powered dataset intelligence
           </p>
 
