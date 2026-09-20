@@ -207,6 +207,10 @@ def calculate_classification_metrics(
     }
 
     if y_score is not None:
+        if len(set(y_true)) < 2:
+            metrics["roc_auc"] = float("nan")
+            metrics["pr_auc"] = float("nan")
+            return metrics
         try:
             metrics["roc_auc"] = float(
                 roc_auc_score(

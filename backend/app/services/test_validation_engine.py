@@ -180,6 +180,19 @@ def test_classification_metrics_without_scores():
 
     assert np.isnan(metrics["roc_auc"])
     assert np.isnan(metrics["pr_auc"])
+def test_classification_metrics_with_single_class():
+    y_true = [0, 0, 0, 0]
+    y_pred = [0, 0, 0, 0]
+    y_score = [0.1, 0.2, 0.3, 0.4]
+
+    metrics = calculate_classification_metrics(
+        y_true,
+        y_pred,
+        y_score,
+    )
+
+    assert np.isnan(metrics["roc_auc"])
+    assert np.isnan(metrics["pr_auc"])
 
 def test_evaluate_classification_model():
     X_train = [
