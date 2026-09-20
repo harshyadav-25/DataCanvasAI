@@ -20,6 +20,7 @@ function Sidebar({ isOpen, onClose }) {
         </svg>
       ),
     },
+
     {
       name: 'Upload',
       path: '/upload',
@@ -38,6 +39,7 @@ function Sidebar({ isOpen, onClose }) {
         </svg>
       ),
     },
+
     {
       name: 'Data Preview',
       path: '/overview',
@@ -58,6 +60,7 @@ function Sidebar({ isOpen, onClose }) {
         </svg>
       ),
     },
+
     {
       name: 'Profiling',
       path: '/profiling',
@@ -76,6 +79,7 @@ function Sidebar({ isOpen, onClose }) {
         </svg>
       ),
     },
+
     {
       name: 'Preprocessing',
       path: '/canvas',
@@ -97,6 +101,10 @@ function Sidebar({ isOpen, onClose }) {
         </svg>
       ),
     },
+
+    /* =====================================================
+       TASK 2 — ML RISK AUDITOR
+       ===================================================== */
     {
       name: 'Risk Auditor',
       path: '/risks',
@@ -121,6 +129,10 @@ function Sidebar({ isOpen, onClose }) {
         </svg>
       ),
     },
+
+    /* =====================================================
+       TASK 3 — RECOMMENDATIONS
+       ===================================================== */
     {
       name: 'Recommendations',
       path: '/recommendations',
@@ -140,6 +152,9 @@ function Sidebar({ isOpen, onClose }) {
       ),
     },
 
+    /* =====================================================
+       TASK 4 — WHAT-IF SIMULATOR
+       ===================================================== */
     {
       name: 'Experiments',
       path: '/experiments',
@@ -156,6 +171,31 @@ function Sidebar({ isOpen, onClose }) {
           <path d="M10 3v5l-5.5 9.2A2 2 0 0 0 6.2 20h11.6a2 2 0 0 0 1.7-2.8L14 8V3" />
           <path d="M8 14h8" />
           <path d="M9 17h6" />
+        </svg>
+      ),
+    },
+
+    /* =====================================================
+       TASK 5 — VALIDATION
+       ===================================================== */
+    {
+      name: 'Validation',
+      path: '/validation',
+      icon: (
+        <svg
+          className="h-5 w-5"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.8"
+          viewBox="0 0 24 24"
+          aria-hidden="true"
+        >
+          <rect x="4" y="3" width="16" height="18" rx="2" />
+          <path d="M8 7h8" />
+          <path d="M8 11h3" />
+          <path d="M8 15h3" />
+          <path d="M14 11l1.5 1.5L18 10" />
+          <path d="M14 15l1.5 1.5L18 14" />
         </svg>
       ),
     },
@@ -204,6 +244,9 @@ function Sidebar({ isOpen, onClose }) {
       ),
     },
 
+    /* =====================================================
+       TASK 6 — HISTORY
+       ===================================================== */
     {
       name: 'History',
       path: '/history',
@@ -328,7 +371,7 @@ function Sidebar({ isOpen, onClose }) {
                 DataCanvas<span className="text-[#8D89FF]">AI</span>
               </p>
 
-              <p className="mt-0.5 whitespace-nowrap text-[8px] text-slate-400">
+              <p className="mt-0.5 whitespace-nowrap text-[8px] text-white">
                 Clean Data. Smarter Models.
               </p>
             </div>
