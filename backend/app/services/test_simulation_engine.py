@@ -144,3 +144,69 @@ def test_column_without_missing_values_reports_no_change():
     assert result.rows_affected == 0
     assert result.changed is False
     pd.testing.assert_frame_equal(result_dataframe, dataframe)
+
+def test_most_frequent_imputation_fills_missing_categorical_values():
+    dataframe = pd.DataFrame(
+        {
+            "City": ["Delhi", "Mumbai", None, "Delhi", None],
+        }
+    )
+
+    request = SimulationRequest(
+        column="City",
+        transformation=SimulationTransformation.MOST_FREQUENT_IMPUTATION,
+    )
+
+    result_dataframe, result = simulate_transformation(
+        dataframe,
+        request,
+    )
+
+    assert result_dataframe["City"].isna().sum() == 0
+    assert result.missing_values_before == 2
+    assert result.missing_values_after == 0
+    assert result.rows_affected == 2
+    assert result.changed is True
+    
+def test_all_missing_categorical_column_raises_error():
+    dataframe = pd.DataFrame(
+        {
+            "City": [None, None, None],
+        }
+    )
+
+    request = SimulationRequest(
+        column="City",
+        transformation=SimulationTransformation.MOST_FREQUENT_IMPUTATION,
+    )
+
+    with pytest.raises(
+        ValueError,
+        match="no valid values",
+    ):
+        simulate_transformation(dataframe, request)
+        
+def test_mean_imputation_fills_missing_numeric_values():
+    dataframe = pd.DataFrame(
+        {
+            "Age": [10, 20, None, 30, None],
+        }
+    )
+
+    request = SimulationRequest(
+        column="Age",
+        transformation=SimulationTransformation.MEAN_IMPUTATION,
+    )
+
+    result_dataframe, result = simulate_transformation(
+        dataframe,
+        request,
+    )
+
+    assert result_dataframe["Age"].isna().sum() == 0
+    assert result_dataframe.loc[2, "Age"] == 20
+    assert result_dataframe.loc[4, "Age"] == 20
+    assert result.missing_values_before == 2
+    assert result.missing_values_after == 0
+    assert result.rows_affected == 2
+    assert result.changed is True

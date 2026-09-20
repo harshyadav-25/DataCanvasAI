@@ -1,4 +1,5 @@
 import numpy as np
+from app.services.preprocessing_engine import PreprocessingEngine
 
 from sklearn.ensemble import (
     HistGradientBoostingClassifier,
@@ -96,6 +97,32 @@ def get_cv_strategy(
         )
 
     raise ValueError(f"Unsupported problem type: {problem_type}")
+def get_safe_n_splits(
+    y,
+    problem_type: TargetProblemType,
+    requested_splits: int = 5,
+) -> int:
+    if requested_splits < 2:
+        raise ValueError("requested_splits must be at least 2")
+
+    if problem_type == TargetProblemType.CLASSIFICATION:
+        _, class_counts = np.unique(y, return_counts=True)
+        min_class_count = int(np.min(class_counts))
+
+        safe_splits = min(requested_splits, min_class_count)
+
+    elif problem_type == TargetProblemType.REGRESSION:
+        safe_splits = min(requested_splits, len(y))
+
+    else:
+        raise ValueError(f"Unsupported problem type: {problem_type}")
+
+    if safe_splits < 2:
+        raise ValueError(
+            "Not enough samples to perform cross-validation"
+        )
+
+    return safe_splits
 
 
 def get_metric_names(
@@ -251,7 +278,16 @@ def cross_validate_models(
     n_splits: int = 5,
 ) -> dict:
     models = get_models(problem_type)
-    cv = get_cv_strategy(problem_type, n_splits)
+    safe_n_splits = get_safe_n_splits(
+        y,
+        problem_type,
+        n_splits,
+    )
+
+    cv = get_cv_strategy(
+        problem_type,
+        safe_n_splits,
+    )
 
     results = {}
 
@@ -264,6 +300,100 @@ def cross_validate_models(
 
             y_train = y[train_indices]
             y_test = y[test_indices]
+
+            metrics = evaluate_model(
+                model,
+                X_train,
+                X_test,
+                y_train,
+                y_test,
+                problem_type,
+            )
+
+            fold_metrics.append(metrics)
+
+        metric_names = get_metric_names(problem_type)
+
+        mean_metrics = {}
+        std_metrics = {}
+
+        for metric_name in metric_names:
+            values = [
+                metrics[metric_name]
+                for metrics in fold_metrics
+                if not np.isnan(metrics[metric_name])
+            ]
+
+            if values:
+                mean_metrics[metric_name] = float(np.mean(values))
+                std_metrics[metric_name] = float(np.std(values))
+            else:
+                mean_metrics[metric_name] = float("nan")
+                std_metrics[metric_name] = float("nan")
+
+        results[model_name] = {
+            "model_name": model_name,
+            "fold_metrics": fold_metrics,
+            "mean_metrics": mean_metrics,
+            "std_metrics": std_metrics,
+        }
+
+    return results
+
+def cross_validate_with_preprocessing(
+    dataframe,
+    target_column: str,
+    problem_type: TargetProblemType,
+    identifier_columns: list[str] | None = None,
+    n_splits: int = 5,
+) -> dict:
+    """
+    Perform cross-validation with preprocessing fitted separately
+    inside each fold to prevent data leakage.
+    """
+
+    identifier_columns = identifier_columns or []
+
+    X = dataframe.drop(columns=[target_column])
+    y = dataframe[target_column].to_numpy()
+
+    models = get_models(problem_type)
+
+    safe_n_splits = get_safe_n_splits(
+        y,
+        problem_type,
+        n_splits,
+    )
+
+    cv = get_cv_strategy(
+        problem_type,
+        safe_n_splits,
+    )
+
+    results = {}
+
+    for model_name, model in models.items():
+        fold_metrics = []
+
+        for train_indices, test_indices in cv.split(X, y):
+            train_dataframe = dataframe.iloc[train_indices].copy()
+            test_dataframe = dataframe.iloc[test_indices].copy()
+
+            preprocessing_engine = PreprocessingEngine(
+                target_column=target_column,
+                identifier_columns=identifier_columns,
+            )
+
+            X_train = preprocessing_engine.fit_transform(
+                train_dataframe
+            )
+
+            X_test = preprocessing_engine.transform(
+                test_dataframe
+            )
+
+            y_train = train_dataframe[target_column].to_numpy()
+            y_test = test_dataframe[target_column].to_numpy()
 
             metrics = evaluate_model(
                 model,

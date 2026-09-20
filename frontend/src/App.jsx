@@ -1,15 +1,16 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import { BrowserRouter, Route, Routes } from 'react-router-dom'
 
 import Layout from './components/layout/Layout'
 import ProtectedRoute from './components/auth/ProtectedRoute'
 
 import Landing from './pages/Landing'
+import Login from './pages/Login'
+import Register from './pages/Register'
+
 import Dashboard from './pages/Dashboard'
 import Upload from './pages/Upload'
 import Overview from './pages/Overview'
 import Profiling from './pages/Profiling'
-import Login from './pages/Login'
-import Register from './pages/Register'
 import DataCanvas from './pages/DataCanvas'
 import Risks from './pages/Risks'
 import Recommendations from './pages/Recommendations'
@@ -20,17 +21,19 @@ function App() {
     <BrowserRouter>
       <Routes>
 
-        {/* =========================
+        {/* =========================================
             PUBLIC LANDING PAGE
-            ========================= */}
+            ========================================= */}
+
         <Route
           path="/"
           element={<Landing />}
         />
 
-        {/* =========================
+        {/* =========================================
             AUTHENTICATION
-            ========================= */}
+            ========================================= */}
+
         <Route
           path="/login"
           element={<Login />}
@@ -41,9 +44,12 @@ function App() {
           element={<Register />}
         />
 
-        {/* =========================
-            PROTECTED DASHBOARD
-            ========================= */}
+        {/* =========================================
+            PROTECTED APPLICATION
+            ========================================= */}
+
+        {/* Dashboard / Home */}
+
         <Route
           path="/dashboard"
           element={
@@ -55,9 +61,8 @@ function App() {
           }
         />
 
-        {/* =========================
-            PROTECTED UPLOAD
-            ========================= */}
+        {/* Upload */}
+
         <Route
           path="/upload"
           element={
@@ -69,23 +74,8 @@ function App() {
           }
         />
 
-        {/* =========================
-            PROTECTED DATA CANVAS
-            ========================= */}
-        <Route
-          path="/canvas"
-          element={
-            <ProtectedRoute>
-              <Layout>
-                <DataCanvas />
-              </Layout>
-            </ProtectedRoute>
-          }
-        />
+        {/* Data Preview / Overview */}
 
-        {/* =========================
-            PROTECTED OVERVIEW
-            ========================= */}
         <Route
           path="/overview"
           element={
@@ -97,9 +87,8 @@ function App() {
           }
         />
 
-        {/* =========================
-            PROTECTED PROFILING
-            ========================= */}
+        {/* Profiling */}
+
         <Route
           path="/profiling"
           element={
@@ -111,9 +100,21 @@ function App() {
           }
         />
 
-        {/* =========================
-            PROTECTED RISKS
-            ========================= */}
+        {/* Dataset Canvas / Preprocessing */}
+
+        <Route
+          path="/canvas"
+          element={
+            <ProtectedRoute>
+              <Layout>
+                <DataCanvas />
+              </Layout>
+            </ProtectedRoute>
+          }
+        />
+
+        {/* ML Risk Auditor */}
+
         <Route
           path="/risks"
           element={
@@ -125,9 +126,8 @@ function App() {
           }
         />
 
-        {/* =========================
-            PROTECTED RECOMMENDATIONS
-            ========================= */}
+        {/* Recommendations */}
+
         <Route
           path="/recommendations"
           element={
@@ -139,9 +139,12 @@ function App() {
           }
         />
 
-        {/* =========================
-            PROTECTED VISUALIZATION
-            ========================= */}
+        {/* =========================================
+            FUTURE APPLICATION MODULES
+            ========================================= */}
+
+        {/* Visualization */}
+
         <Route
           path="/visualization"
           element={
@@ -155,9 +158,8 @@ function App() {
           }
         />
 
-        {/* =========================
-            PROTECTED MODELING
-            ========================= */}
+        {/* Modeling */}
+
         <Route
           path="/modeling"
           element={
@@ -171,9 +173,8 @@ function App() {
           }
         />
 
-        {/* =========================
-            PROTECTED HISTORY
-            ========================= */}
+        {/* History */}
+
         <Route
           path="/history"
           element={

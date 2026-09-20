@@ -1,6 +1,6 @@
 import { NavLink } from 'react-router-dom'
 
-function Sidebar() {
+function Sidebar({ isOpen, onClose }) {
   const menuItems = [
     {
       name: 'Home',
@@ -12,6 +12,7 @@ function Sidebar() {
           stroke="currentColor"
           strokeWidth="1.8"
           viewBox="0 0 24 24"
+          aria-hidden="true"
         >
           <path d="M3 10.5L12 3l9 7.5" />
           <path d="M5 9.5V21h14V9.5" />
@@ -19,7 +20,6 @@ function Sidebar() {
         </svg>
       ),
     },
-
     {
       name: 'Upload',
       path: '/upload',
@@ -30,6 +30,7 @@ function Sidebar() {
           stroke="currentColor"
           strokeWidth="1.8"
           viewBox="0 0 24 24"
+          aria-hidden="true"
         >
           <path d="M12 16V4" />
           <path d="M7 9l5-5 5 5" />
@@ -37,7 +38,6 @@ function Sidebar() {
         </svg>
       ),
     },
-
     {
       name: 'Data Preview',
       path: '/overview',
@@ -48,6 +48,7 @@ function Sidebar() {
           stroke="currentColor"
           strokeWidth="1.8"
           viewBox="0 0 24 24"
+          aria-hidden="true"
         >
           <rect x="3" y="4" width="18" height="16" rx="2" />
           <path d="M3 9h18" />
@@ -57,7 +58,6 @@ function Sidebar() {
         </svg>
       ),
     },
-
     {
       name: 'Profiling',
       path: '/profiling',
@@ -68,6 +68,7 @@ function Sidebar() {
           stroke="currentColor"
           strokeWidth="1.8"
           viewBox="0 0 24 24"
+          aria-hidden="true"
         >
           <path d="M4 19V5" />
           <path d="M4 19h16" />
@@ -75,7 +76,6 @@ function Sidebar() {
         </svg>
       ),
     },
-
     {
       name: 'Preprocessing',
       path: '/canvas',
@@ -86,6 +86,7 @@ function Sidebar() {
           stroke="currentColor"
           strokeWidth="1.8"
           viewBox="0 0 24 24"
+          aria-hidden="true"
         >
           <path d="M4 6h16" />
           <path d="M7 12h10" />
@@ -96,10 +97,6 @@ function Sidebar() {
         </svg>
       ),
     },
-
-    /* =====================================================
-       TASK 2 — ML RISK AUDITOR
-       ===================================================== */
     {
       name: 'Risk Auditor',
       path: '/risks',
@@ -110,6 +107,7 @@ function Sidebar() {
           stroke="currentColor"
           strokeWidth="1.8"
           viewBox="0 0 24 24"
+          aria-hidden="true"
         >
           <path d="M12 3l8 4v5c0 4.8-3.4 8.1-8 9-4.6-.9-8-4.2-8-9V7l8-4z" />
           <path d="M12 8v5" />
@@ -123,10 +121,6 @@ function Sidebar() {
         </svg>
       ),
     },
-
-    /* =====================================================
-       TASK 3 — RECOMMENDATIONS
-       ===================================================== */
     {
       name: 'Recommendations',
       path: '/recommendations',
@@ -137,6 +131,7 @@ function Sidebar() {
           stroke="currentColor"
           strokeWidth="1.8"
           viewBox="0 0 24 24"
+          aria-hidden="true"
         >
           <path d="M9 18h6" />
           <path d="M10 21h4" />
@@ -145,9 +140,6 @@ function Sidebar() {
       ),
     },
 
-    /* =====================================================
-       TASK 4 — WHAT-IF SIMULATOR
-       ===================================================== */
     {
       name: 'Experiments',
       path: '/experiments',
@@ -158,6 +150,7 @@ function Sidebar() {
           stroke="currentColor"
           strokeWidth="1.8"
           viewBox="0 0 24 24"
+          aria-hidden="true"
         >
           <path d="M9 3h6" />
           <path d="M10 3v5l-5.5 9.2A2 2 0 0 0 6.2 20h11.6a2 2 0 0 0 1.7-2.8L14 8V3" />
@@ -177,6 +170,7 @@ function Sidebar() {
           stroke="currentColor"
           strokeWidth="1.8"
           viewBox="0 0 24 24"
+          aria-hidden="true"
         >
           <path d="M4 19V5" />
           <path d="M4 19h16" />
@@ -195,6 +189,7 @@ function Sidebar() {
           stroke="currentColor"
           strokeWidth="1.8"
           viewBox="0 0 24 24"
+          aria-hidden="true"
         >
           <rect x="4" y="4" width="16" height="16" rx="3" />
           <circle cx="9" cy="9" r="1.5" />
@@ -219,6 +214,7 @@ function Sidebar() {
           stroke="currentColor"
           strokeWidth="1.8"
           viewBox="0 0 24 24"
+          aria-hidden="true"
         >
           <path d="M3 12a9 9 0 1 0 3-6.7" />
           <path d="M3 5v5h5" />
@@ -229,105 +225,135 @@ function Sidebar() {
   ]
 
   return (
-    <aside
-      className="
-        fixed
-        left-0
-        top-0
-        z-40
-        flex
-        h-screen
-        w-[208px]
-        shrink-0
-        flex-col
-        overflow-hidden
-        border-r
-        border-white/[0.08]
-        bg-[#050816]/30
-        text-white
-        backdrop-blur-xl
-      "
-    >
-      {/* =====================================================
-          LOGO SECTION
-          ===================================================== */}
+    <>
+      {/* =========================================
+          MOBILE OVERLAY
+          ========================================= */}
 
-      <div
-        className="
+      {isOpen && (
+        <button
+          type="button"
+          onClick={onClose}
+          aria-label="Close sidebar"
+          className="
+            fixed
+            inset-0
+            z-40
+            bg-black/50
+            backdrop-blur-sm
+            lg:hidden
+          "
+        />
+      )}
+
+      {/* =========================================
+          SIDEBAR
+          ========================================= */}
+
+      <aside
+        aria-label="Main navigation"
+        className={`
+          fixed
+          left-0
+          top-0
+          z-50
+          flex
+          h-screen
+          w-52
           shrink-0
-          border-b
-          border-white/[0.07]
-          px-5
-          py-5
-        "
+          flex-col
+          overflow-hidden
+          border-r
+          border-white/8
+          bg-[#050816]/30
+          text-white
+          backdrop-blur-xl
+          transition-transform
+          duration-300
+          ease-in-out
+          ${
+            isOpen
+              ? 'translate-x-0'
+              : '-translate-x-full'
+          }
+        `}
       >
-        <div className="flex items-center gap-3">
+        {/* =========================================
+            LOGO SECTION
+            ========================================= */}
 
-          {/* Logo Icon */}
-          <div
-            className="
-              flex
-              h-10
-              w-10
-              shrink-0
-              items-center
-              justify-center
-              rounded-xl
-              bg-[#5B56E8]
-              shadow-[0_0_25px_rgba(91,86,232,0.35)]
-            "
-          >
-            <svg
-              className="h-6 w-6 text-white"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="1.8"
-              viewBox="0 0 24 24"
+        <div className="shrink-0 border-b border-white/7 px-5 py-5">
+          <div className="flex items-center gap-3">
+
+            {/* Logo Icon */}
+
+            <div
+              className="
+                flex
+                h-10
+                w-10
+                shrink-0
+                items-center
+                justify-center
+                rounded-xl
+                bg-[#5B56E8]
+                shadow-[0_0_25px_rgba(91,86,232,0.35)]
+              "
+              aria-hidden="true"
             >
-              <ellipse
-                cx="12"
-                cy="5"
-                rx="7"
-                ry="3"
-              />
+              <svg
+                className="h-6 w-6 text-white"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.8"
+                viewBox="0 0 24 24"
+              >
+                <ellipse
+                  cx="12"
+                  cy="5"
+                  rx="7"
+                  ry="3"
+                />
 
-              <path
-                d="M5 5v7c0 1.7 3.1 3 7 3s7-1.3 7-3V5"
-              />
+                <path d="M5 5v7c0 1.7 3.1 3 7 3s7-1.3 7-3V5" />
 
-              <path
-                d="M5 12v7c0 1.7 3.1 3 7 3s7-1.3 7-3v-7"
-              />
-            </svg>
+                <path d="M5 12v7c0 1.7 3.1 3 7 3s7-1.3 7-3v-7" />
+              </svg>
+            </div>
+
+            {/* Logo Text */}
+
+            <div>
+              <p className="text-lg font-bold leading-tight text-white">
+                DataCanvas<span className="text-[#8D89FF]">AI</span>
+              </p>
+
+              <p className="mt-0.5 whitespace-nowrap text-[8px] text-slate-400">
+                Clean Data. Smarter Models.
+              </p>
+            </div>
+
           </div>
-
-          {/* Logo Text */}
-          <div>
-            <p className="text-lg font-bold leading-tight text-white">
-              DataCanvas<span className="text-[#8D89FF]">AI</span>
-            </p>
-
-            <p className="mt-0.5 whitespace-nowrap text-[8px] text-slate-400">
-              Clean Data. Smarter Models.
-            </p>
-          </div>
-
         </div>
-      </div>
 
+        {/* =========================================
+            NAVIGATION
+            ========================================= */}
 
-      {/* =====================================================
-          NAVIGATION
-          ===================================================== */}
-
-      <nav className="flex-1 space-y-1 overflow-y-auto p-3">
-
-        {menuItems.map((item) => (
-          <NavLink
-            key={item.name}
-            to={item.path}
-            className={({ isActive }) =>
-              `
+        <nav
+          className="flex-1 space-y-1 overflow-y-auto p-3"
+          aria-label="Application navigation"
+        >
+          {menuItems.map((item) => (
+            <NavLink
+              key={item.name}
+              to={item.path}
+              onClick={() => {
+                if (window.innerWidth < 1024) {
+                  onClose()
+                }
+              }}
+              className={({ isActive }) => `
                 group
                 flex
                 items-center
@@ -338,14 +364,18 @@ function Sidebar() {
                 py-2.5
                 text-sm
                 font-semibold
+                outline-none
                 transition-all
                 duration-200
-
+                focus-visible:ring-2
+                focus-visible:ring-[#A69CFF]/70
+                focus-visible:ring-offset-2
+                focus-visible:ring-offset-[#050816]
                 ${
                   isActive
                     ? `
                       border-[#756BFF]/30
-                      bg-gradient-to-r
+                      bg-linear-to-r
                       from-[#5148D8]/30
                       to-[#756BFF]/15
                       text-white
@@ -354,41 +384,24 @@ function Sidebar() {
                     : `
                       border-transparent
                       text-white
-                      hover:bg-white/[0.06]
+                      hover:bg-white/6
                       hover:text-white
                     `
                 }
-              `
-            }
-          >
-            {/* Menu Icon */}
-            <span
-              className="
-                flex
-                h-5
-                w-5
-                shrink-0
-                items-center
-                justify-center
-                text-white
-                opacity-90
-                transition-all
-                duration-200
-                group-hover:opacity-100
-              "
+              `}
             >
-              {item.icon}
-            </span>
+              <span className="flex h-5 w-5 shrink-0 items-center justify-center text-white opacity-90 transition group-hover:opacity-100">
+                {item.icon}
+              </span>
 
-            {/* Menu Name */}
-            <span className="text-white">
-              {item.name}
-            </span>
-          </NavLink>
-        ))}
-
-      </nav>
-    </aside>
+              <span className="truncate text-white">
+                {item.name}
+              </span>
+            </NavLink>
+          ))}
+        </nav>
+      </aside>
+    </>
   )
 }
 
