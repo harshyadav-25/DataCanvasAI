@@ -1,8 +1,10 @@
 import { Link } from 'react-router-dom'
 import { useEffect, useState } from 'react'
+import { useAnalysis } from '../context/AnalysisContext'
 
 function Overview() {
   const [dataset, setDataset] = useState(null)
+  const { targetColumn, problemType, updateAnalysis } = useAnalysis()
 
   useEffect(() => {
     const storedData = localStorage.getItem('datacanvas_upload_result')
@@ -34,6 +36,14 @@ function Overview() {
   const columnNames = Array.isArray(dataset?.column_names)
     ? dataset.column_names
     : []
+
+  const handleTargetChange = (event) => {
+    updateAnalysis({ targetColumn: event.target.value })
+  }
+
+  const handleProblemTypeChange = (event) => {
+    updateAnalysis({ problemType: event.target.value })
+  }
 
   // =====================================================
   // EMPTY STATE
@@ -325,9 +335,16 @@ function Overview() {
                 </div>
               </div>
 
-              <p className="mt-4 text-lg font-bold text-white">
-                Not selected
-              </p>
+              <select
+                value={targetColumn}
+                onChange={handleTargetChange}
+                className="mt-3 w-full rounded-lg border border-white/10 bg-[#11172A] px-3 py-2 text-sm text-white"
+              >
+                <option value="">Select target</option>
+                {columnNames.map((column) => (
+                  <option key={column} value={column}>{column}</option>
+                ))}
+              </select>
 
               <p className="mt-1 text-xs text-white/35">
                 Configure during target selection
@@ -349,9 +366,14 @@ function Overview() {
                 </div>
               </div>
 
-              <p className="mt-4 text-lg font-bold text-white">
-                Not detected
-              </p>
+              <select
+                value={problemType}
+                onChange={handleProblemTypeChange}
+                className="mt-3 w-full rounded-lg border border-white/10 bg-[#11172A] px-3 py-2 text-sm text-white"
+              >
+                <option value="classification">Classification</option>
+                <option value="regression">Regression</option>
+              </select>
 
               <p className="mt-1 text-xs text-white/35">
                 Classification / Regression

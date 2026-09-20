@@ -1,11 +1,55 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
+import { analyzePreprocessing, runSimulation } from '../services/api'
+import { useAnalysis } from '../context/AnalysisContext'
+import StateMessage from '../components/common/StateMessage'
 
 function DataCanvas() {
   const [selectedAction, setSelectedAction] = useState(null)
+  const { datasetId, targetColumn } = useAnalysis()
+  const [preprocessing, setPreprocessing] = useState(null)
+  const [state, setState] = useState('loading')
+  const [error, setError] = useState('')
 
-  const columns = []
+  const loadPreprocessing = async () => {
+    if (!datasetId || !targetColumn) {
+      setState('empty')
+      return
+    }
+    setState('loading')
+    try {
+      setPreprocessing(await analyzePreprocessing(datasetId, targetColumn))
+      setState('success')
+    } catch (requestError) {
+      setError(requestError.userMessage || 'Unable to load preprocessing analysis.')
+      setState('error')
+    }
+  }
 
-  const handleAction = (action) => {
+  useEffect(() => { loadPreprocessing() }, [datasetId, targetColumn])
+
+  const columns = preprocessing?.feature_names?.map((name) => ({
+    id: name,
+    name,
+    dataType: preprocessing.feature_groups?.numeric?.includes(name)
+      ? 'numeric'
+      : 'categorical',
+  })) || []
+
+  const handleAction = async (action, column) => {
+    if (action === 'simulate' && datasetId && column) {
+      try {
+        const result = await runSimulation(datasetId, {
+          column,
+          transformation: 'MEDIAN_IMPUTATION',
+        })
+        setSelectedAction(
+          `${column}: ${result.missing_values_before} missing values before, ${result.missing_values_after} after`,
+        )
+      } catch (requestError) {
+        setError(requestError.userMessage || 'Unable to run simulation.')
+      }
+      return
+    }
     setSelectedAction(action)
   }
 
@@ -41,32 +85,36 @@ function DataCanvas() {
               </p>
 
               <p className="mt-1 text-sm font-semibold text-[#A7AFC3]">
-                Not connected
+                {state === 'success' ? 'Connected' : 'Backend analysis'}
               </p>
             </div>
           </div>
         </section>
 
+        {state === 'loading' && <StateMessage type="loading" title="Loading preprocessing analysis" />}
+        {state === 'error' && <StateMessage type="error" title="Unable to load preprocessing" message={error} actionLabel="Retry" onAction={loadPreprocessing} />}
+        {state === 'empty' && <StateMessage type="empty" title="Target configuration required" message="Select a target column in Overview before preprocessing." />}
+
         {/* Dataset Summary */}
         <section className="grid grid-cols-2 gap-4 xl:grid-cols-4">
           <SummaryCard
             label="Dataset"
-            value="Not available"
+            value={preprocessing?.dataset_id || 'Not available'}
           />
 
           <SummaryCard
-            label="Rows"
-            value="—"
+            label="Features"
+            value={preprocessing?.feature_names?.length ?? '—'}
           />
 
           <SummaryCard
-            label="Columns"
-            value="—"
+            label="Numeric features"
+            value={preprocessing?.feature_groups?.numeric?.length ?? '—'}
           />
 
           <SummaryCard
             label="Target"
-            value="Not available"
+            value={preprocessing?.target_column || 'Not available'}
           />
         </section>
 
@@ -106,7 +154,7 @@ function DataCanvas() {
           </div>
 
           {/* Empty State */}
-          {columns.length === 0 ? (
+          {state === 'success' && columns.length === 0 ? (
             <div className="rounded-2xl border border-dashed border-[#343C53] bg-[#0F1526]/80 px-6 py-14 text-center backdrop-blur-xl">
               <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl border border-[#6557D8]/30 bg-[#6D5DF6]/10 text-xl text-[#9A8EFF]">
                 +
@@ -121,7 +169,7 @@ function DataCanvas() {
                 column-level results.
               </p>
             </div>
-          ) : (
+          ) : state === 'success' ? (
             <div className="grid grid-cols-1 gap-5 xl:grid-cols-2">
               {columns.map((column) => (
                 <ColumnCard
@@ -131,12 +179,12 @@ function DataCanvas() {
                     handleAction(`Investigate: ${column.name}`)
                   }
                   onSimulate={() =>
-                    handleAction(`Simulate: ${column.name}`)
+                    handleAction('simulate', column.name)
                   }
                 />
               ))}
             </div>
-          )}
+          ) : null}
         </section>
 
         {/* Temporary UI interaction */}
@@ -222,63 +270,37 @@ function ColumnCard({
         </span>
       </div>
 
-      {/* Metrics */}
-      <div className="mt-5 grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <Metric
-          label="Missing"
-          value={column.missingPercentage ?? '—'}
-        />
-
-        <Metric
-          label="Unique"
-          value={column.cardinality ?? '—'}
-        />
-
-        <Metric
-          label="Distribution"
-          value={column.distribution ?? '—'}
-        />
-
-        <Metric
-          label="Outlier"
-          value={column.outlierSignal ?? '—'}
-        />
-      </div>
-
-      {/* Evidence */}
       <div className="mt-4 rounded-xl border border-[#343C53] bg-[#11172A]/70 p-4">
         <p className="text-[11px] font-bold uppercase tracking-wide text-[#8993A9]">
-          Evidence / reason
+          Backend preprocessing group
         </p>
 
         <p className="mt-2 text-sm leading-6 text-[#A7AFC3]">
-          {column.evidence || 'Not available'}
+          {column.dataType === 'numeric'
+            ? 'This feature is handled by the backend numeric preprocessing pipeline.'
+            : 'This feature is handled by the backend categorical preprocessing pipeline.'}
         </p>
       </div>
 
-      {/* Recommendation */}
       <div className="mt-4 rounded-xl border border-[#6557D8]/20 bg-[#6D5DF6]/5 p-4">
         <p className="text-[11px] font-bold uppercase tracking-wide text-[#9183FF]">
-          Recommendation
+          Generated feature
         </p>
 
         <p className="mt-2 text-sm leading-6 text-[#A7AFC3]">
-          {column.recommendation || 'Not available'}
+          {column.name}
         </p>
       </div>
 
-      {/* Confidence */}
       <div className="mt-4 rounded-xl border border-[#252D42] bg-[#0A1020]/60 p-4">
         <div className="flex items-center justify-between">
           <div>
             <p className="text-xs text-[#68728A]">
-              Confidence
+              Source
             </p>
 
             <p className="mt-1 text-sm font-bold text-white">
-              {column.confidence != null
-                ? `${column.confidence}%`
-                : 'Not available'}
+              Existing preprocessing engine
             </p>
           </div>
         </div>
@@ -303,24 +325,6 @@ function ColumnCard({
         </button>
       </div>
     </article>
-  )
-}
-
-/* =========================================================
-   METRIC
-========================================================= */
-
-function Metric({ label, value }) {
-  return (
-    <div className="rounded-xl border border-[#252D42] bg-[#11172A] p-3">
-      <p className="text-[11px] font-medium text-[#68728A]">
-        {label}
-      </p>
-
-      <p className="mt-1 truncate text-sm font-semibold text-[#D7DBE6]">
-        {value}
-      </p>
-    </div>
   )
 }
 

@@ -1,4 +1,6 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
+import { analyzeValidation } from '../services/api'
+import { useAnalysis } from '../context/AnalysisContext'
 
 const classificationMetricNames = [
   'Accuracy',
@@ -16,7 +18,20 @@ const regressionMetricNames = [
   'R²',
 ]
 
-function MetricStructure({ names }) {
+const metricKeyByLabel = {
+  Accuracy: 'accuracy',
+  Precision: 'precision',
+  Recall: 'recall',
+  'F1 Score': 'f1',
+  'ROC-AUC': 'roc_auc',
+  'PR-AUC': 'pr_auc',
+  'Balanced Accuracy': 'balanced_accuracy',
+  MAE: 'mae',
+  RMSE: 'rmse',
+  'R²': 'r2',
+}
+
+function MetricStructure({ names, result }) {
   return (
     <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
       {names.map((name) => (
@@ -35,11 +50,19 @@ function MetricStructure({ names }) {
           </p>
 
           <div className="mt-5">
-            <div className="h-10 w-24 rounded-lg bg-white/[0.05]" />
+            <p className="text-3xl font-bold text-white">
+              {result?.mean_metrics?.[metricKeyByLabel[name]] !== undefined
+                ? result.mean_metrics[metricKeyByLabel[name]].toFixed(4)
+                : '—'}
+            </p>
           </div>
 
           <p className="mt-4 text-xs leading-5 text-white">
-            Value will appear when validation data is available.
+            {result
+              ? `Mean score for ${result.model_name}; standard deviation: ${
+                result.std_metrics?.[metricKeyByLabel[name]]?.toFixed(4) ?? '—'
+              }`
+              : 'Value will appear when validation data is available.'}
           </p>
         </article>
       ))}
@@ -146,7 +169,7 @@ function WarningState() {
   )
 }
 
-function ErrorState({ onRetry }) {
+function ErrorState({ onRetry, message }) {
   return (
     <div
       className="
@@ -164,7 +187,7 @@ function ErrorState({ onRetry }) {
           </h3>
 
           <p className="mt-2 text-sm text-white">
-            Please retry when validation data is available.
+            {message || 'Please retry when validation data is available.'}
           </p>
         </div>
 
@@ -193,7 +216,11 @@ function ErrorState({ onRetry }) {
 }
 
 function ValidationPage() {
-  const [problemType, setProblemType] = useState('classification')
+  const { datasetId, targetColumn, problemType, identifierColumns, updateAnalysis } = useAnalysis()
+  const [validationData, setValidationData] = useState(null)
+  const [validationState, setValidationState] = useState('loading')
+  const [error, setError] = useState('')
+  const requestIdRef = useRef(0)
 
   /*
     =========================================================
@@ -225,16 +252,41 @@ function ValidationPage() {
     =========================================================
   */
 
-  const validationState = 'empty'
-
   const metricNames =
     problemType === 'classification'
       ? classificationMetricNames
       : regressionMetricNames
 
-  const handleRetry = () => {
-    // Future API retry logic will be added here.
+  const loadValidation = async () => {
+    const requestId = ++requestIdRef.current
+    if (!datasetId || !targetColumn) {
+      setValidationData(null)
+      setValidationState('empty')
+      return
+    }
+    setValidationState('loading')
+    setError('')
+    try {
+      const response = await analyzeValidation({
+        datasetId,
+        targetColumn,
+        problemType,
+        identifierColumns,
+      })
+      if (!response || !Array.isArray(response.results)) {
+        throw new Error('The validation response did not contain model results.')
+      }
+      if (requestId !== requestIdRef.current) return
+      setValidationData(response)
+      setValidationState('success')
+    } catch (requestError) {
+      if (requestId !== requestIdRef.current) return
+      setError(requestError.userMessage || 'Unable to load validation results.')
+      setValidationState('error')
+    }
   }
+
+  useEffect(() => { loadValidation() }, [datasetId, targetColumn, problemType, identifierColumns])
 
   return (
     <div className="min-h-full px-4 py-6 text-white sm:px-6 lg:px-8">
@@ -292,7 +344,10 @@ function ValidationPage() {
             <div className="flex rounded-xl border border-white/10 bg-black/10 p-1">
               <button
                 type="button"
-                onClick={() => setProblemType('classification')}
+                onClick={() => {
+                  updateAnalysis({ problemType: 'classification' })
+                  setValidationData(null)
+                }}
                 className={`
                   rounded-lg
                   px-4
@@ -313,7 +368,10 @@ function ValidationPage() {
 
               <button
                 type="button"
-                onClick={() => setProblemType('regression')}
+                onClick={() => {
+                  updateAnalysis({ problemType: 'regression' })
+                  setValidationData(null)
+                }}
                 className={`
                   rounded-lg
                   px-4
@@ -349,7 +407,7 @@ function ValidationPage() {
           )}
 
           {validationState === 'error' && (
-            <ErrorState onRetry={handleRetry} />
+            <ErrorState onRetry={loadValidation} message={error} />
           )}
         </section>
 
@@ -376,9 +434,17 @@ function ValidationPage() {
               title="No validation data available"
               description="Validation metrics will appear here after real validation results are returned."
             />
-          ) : (
-            <MetricStructure names={metricNames} />
-          )}
+          ) : validationState === 'success' && validationData?.results?.length ? (
+            <MetricStructure
+              names={metricNames}
+              result={validationData.results[0]}
+            />
+          ) : validationState === 'success' ? (
+            <EmptyState
+              title="No validation results returned"
+              description="The validation API completed without model results."
+            />
+          ) : null}
         </section>
 
         {/* =====================================================
@@ -402,7 +468,7 @@ function ValidationPage() {
               title="No model validation results"
               description="Model validation results will appear here when the application receives real validation data."
             />
-          ) : (
+          ) : validationState === 'success' && validationData?.results?.length ? (
             <div
               className="
                 overflow-hidden
@@ -434,11 +500,29 @@ function ValidationPage() {
                     </tr>
                   </thead>
 
-                  <tbody />
+                  <tbody>
+                    {validationData?.results?.map((result) => (
+                      <tr key={result.model_name} className="border-b border-white/10">
+                        <td className="px-5 py-4">{result.model_name}</td>
+                        <td className="px-5 py-4">{validationData.problem_type}</td>
+                        <td className="px-5 py-4">
+                          {Object.entries(result.mean_metrics).map(([name, value]) => (
+                            <div key={name}>{name}: {Number(value).toFixed(4)}</div>
+                          ))}
+                        </td>
+                        <td className="px-5 py-4">Complete</td>
+                      </tr>
+                    ))}
+                  </tbody>
                 </table>
               </div>
             </div>
-          )}
+          ) : validationState === 'success' ? (
+            <EmptyState
+              title="No model validation results"
+              description="The validation API completed without model results."
+            />
+          ) : null}
         </section>
 
       </div>

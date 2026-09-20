@@ -52,6 +52,7 @@ function Header({ sidebarOpen }) {
 
   const handleLogout = () => {
     localStorage.removeItem('datacanvas_auth')
+    localStorage.removeItem('datacanvas_access_token')
     localStorage.removeItem('datacanvas_user')
 
     setShowProfileMenu(false)

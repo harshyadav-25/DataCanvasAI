@@ -95,7 +95,7 @@ function WarningState() {
   )
 }
 
-function ErrorState({ onRetry }) {
+function ErrorState({ onRetry, message }) {
   return (
     <div className="rounded-2xl border border-red-400/20 bg-[#11172A]/80 p-6 backdrop-blur-xl">
       <h3 className="font-semibold text-red-300">
@@ -103,7 +103,7 @@ function ErrorState({ onRetry }) {
       </h3>
 
       <p className="mt-2 text-sm leading-6 text-[#A7AFC3]">
-        Something went wrong while retrieving the readiness information.
+        {message || 'Something went wrong while retrieving the readiness information.'}
       </p>
 
       <button
@@ -134,7 +134,10 @@ function DimensionCard({ dimension, data }) {
         </div>
 
         <span className="shrink-0 rounded-full border border-[#343C53] bg-[#12192B] px-3 py-1 text-[11px] font-semibold text-[#A7AFC3]">
-          {dimensionData?.status || 'Not available'}
+          {dimensionData?.status ||
+            (typeof dimensionData?.value === 'number'
+              ? 'Available'
+              : 'Not available')}
         </span>
       </div>
 
@@ -152,17 +155,39 @@ function DimensionCard({ dimension, data }) {
 }
 
 export default function ReadinessPage() {
-  // Real backend data will be connected later.
-  // No dummy readiness score or dimension values are used.
-  const readinessData = null
+  const { datasetId, targetColumn } = useAnalysis()
+  const [readinessData, setReadinessData] = useState(null)
+  const [pageState, setPageState] = useState('loading')
+  const [error, setError] = useState('')
 
-  // Future states:
-  // loading | empty | warning | error | success
-  const pageState = 'empty'
-
-  const handleRetry = () => {
-    console.log('Retry readiness request')
+  const loadReadiness = async () => {
+    if (!datasetId || !targetColumn) {
+      setPageState('empty')
+      return
+    }
+    setPageState('loading')
+    try {
+      const response = await analyzeReadiness(datasetId, targetColumn)
+      setReadinessData({
+        ...response,
+        score: response.overall_score,
+        dimensions: {
+          dataQuality: { value: response.dimensions.data_quality },
+          featureQuality: { value: response.dimensions.feature_quality },
+          targetQuality: { value: response.dimensions.target_quality },
+          leakageRisk: { value: response.dimensions.leakage_risk },
+          distributionBalance: { value: response.dimensions.distribution_balance },
+          modelCompatibility: { value: response.dimensions.model_compatibility },
+        },
+      })
+      setPageState('success')
+    } catch (requestError) {
+      setError(requestError.userMessage || 'Unable to load readiness data.')
+      setPageState('error')
+    }
   }
+
+  useEffect(() => { loadReadiness() }, [datasetId, targetColumn])
 
   return (
     <div className="relative min-h-screen overflow-hidden rounded-3xl bg-[#070B16] px-4 py-6 text-white sm:px-6 lg:px-8">
@@ -203,7 +228,7 @@ export default function ReadinessPage() {
               </p>
 
               <p className="mt-1 text-sm font-semibold text-[#A7AFC3]">
-                Waiting for results
+                {pageState === 'loading' ? 'Loading' : pageState === 'success' ? 'Complete' : 'Unavailable'}
               </p>
             </div>
 
@@ -226,8 +251,7 @@ export default function ReadinessPage() {
               </h2>
 
               <p className="mt-2 max-w-xl text-sm leading-6 text-[#A7AFC3]">
-                The final readiness score will be provided by the backend.
-                The frontend does not calculate or estimate this score.
+                This score is returned by the backend readiness analysis.
               </p>
             </div>
 
@@ -248,7 +272,7 @@ export default function ReadinessPage() {
         {pageState === 'warning' && <WarningState />}
 
         {pageState === 'error' && (
-          <ErrorState onRetry={handleRetry} />
+          <ErrorState onRetry={loadReadiness} message={error} />
         )}
 
         {pageState === 'empty' && <EmptyState />}
@@ -262,7 +286,7 @@ export default function ReadinessPage() {
             </h2>
 
             <p className="mt-1 text-sm text-[#8F98AD]">
-              Dimension-level results will be displayed when available.
+              Backend-provided dimension scores.
             </p>
           </div>
 
@@ -286,13 +310,14 @@ export default function ReadinessPage() {
           </h2>
 
           <p className="mt-1 text-sm leading-6 text-[#A7AFC3]">
-            Supporting readiness details will appear here when the
-            backend provides the corresponding analysis results.
+            The backend provides six readiness dimensions for this dataset.
           </p>
 
           <div className="mt-4 rounded-xl border border-dashed border-[#343C53] bg-[#0F1526]/70 p-5">
             <p className="text-sm text-[#A7AFC3]">
-              No analysis details available yet.
+              {readinessData
+                ? 'All available readiness dimensions are shown above.'
+                : 'Readiness analysis is not available yet.'}
             </p>
           </div>
 
@@ -307,9 +332,8 @@ export default function ReadinessPage() {
           </h2>
 
           <p className="mt-2 text-sm leading-6 text-[#A7AFC3]">
-            Real readiness data will be populated through the future
-            backend readiness API. The frontend does not calculate the
-            readiness score.
+            Values shown on this page come directly from the readiness API;
+            the frontend does not calculate or estimate them.
           </p>
 
         </section>
@@ -318,3 +342,6 @@ export default function ReadinessPage() {
     </div>
   )
 }
+import { useEffect, useState } from 'react'
+import { analyzeReadiness } from '../services/api'
+import { useAnalysis } from '../context/AnalysisContext'

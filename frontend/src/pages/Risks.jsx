@@ -1,20 +1,51 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
+import { analyzeRisks } from '../services/api'
+import { useAnalysis } from '../context/AnalysisContext'
+import StateMessage from '../components/common/StateMessage'
 
 function Risks() {
   const [selectedRisk, setSelectedRisk] = useState(null)
+  const { datasetId, targetColumn } = useAnalysis()
+  const [risks, setRisks] = useState([])
+  const [state, setState] = useState('loading')
+  const [error, setError] = useState('')
 
-  /*
-   * Backend integration is intentionally not added yet.
-   * Risk values will eventually come from the backend/API.
-   */
-  const risks = []
+  const loadRisks = async () => {
+    if (!datasetId) {
+      setState('empty')
+      return
+    }
+    setState('loading')
+    try {
+      const response = await analyzeRisks(datasetId, targetColumn || undefined)
+      setRisks(response.findings || [])
+      setState('success')
+    } catch (requestError) {
+      setError(requestError.userMessage || 'Unable to load risk findings.')
+      setState('error')
+    }
+  }
+
+  useEffect(() => { loadRisks() }, [datasetId, targetColumn])
 
   const summary = {
-    high: 0,
-    medium: 0,
-    low: 0,
-    total: 0,
+    high: risks.filter((risk) => risk.severity === 'HIGH').length,
+    medium: risks.filter((risk) => risk.severity === 'MEDIUM').length,
+    low: risks.filter((risk) => risk.severity === 'LOW').length,
+    total: risks.length,
   }
+
+  const displayRisk = (risk) => ({
+    ...risk,
+    category: risk.risk_type,
+    affectedColumn: risk.column,
+    evidence: typeof risk.evidence === 'object'
+      ? Object.entries(risk.evidence)
+        .map(([key, value]) => `${key}: ${value}`)
+        .join(' | ')
+      : risk.evidence,
+    whyItMatters: risk.explanation,
+  })
 
   const handleInvestigate = (risk) => {
     setSelectedRisk(risk)
@@ -29,6 +60,11 @@ function Risks() {
       <div className="pointer-events-none absolute -right-24 top-24 h-96 w-96 rounded-full bg-[#3A7BFF]/10 blur-3xl" />
 
       <div className="relative z-10 space-y-6">
+
+        {state === 'loading' && <StateMessage type="loading" title="Loading risks" />}
+        {state === 'error' && <StateMessage type="error" title="Unable to load risks" message={error} actionLabel="Retry" onAction={loadRisks} />}
+        {state === 'empty' && <StateMessage type="empty" title="No dataset available" message="Upload a dataset before risk analysis." />}
+        {state === 'success' && risks.length === 0 && <StateMessage type="success" title="No risks detected" message="The backend found no risk findings for this dataset." />}
 
         {/* =====================================================
             HEADER
@@ -57,7 +93,10 @@ function Risks() {
               </p>
 
               <p className="mt-1 text-sm font-semibold text-[#A7AFC3]">
-                Waiting for results
+                {state === 'loading' && 'Loading'}
+                {state === 'success' && 'Complete'}
+                {state === 'error' && 'Error'}
+                {state === 'empty' && 'Dataset required'}
               </p>
             </div>
 
@@ -134,7 +173,7 @@ function Risks() {
 
 
           {/* Empty state */}
-          {risks.length === 0 ? (
+          {state === 'success' && risks.length === 0 ? (
             <div className="rounded-2xl border border-dashed border-[#343C53] bg-[#0F1526]/80 px-6 py-16 text-center backdrop-blur-xl">
 
               <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl border border-[#6557D8]/30 bg-[#6D5DF6]/10 text-xl font-bold text-[#9A8EFF]">
@@ -158,13 +197,16 @@ function Risks() {
           ) : (
             <div className="space-y-4">
 
-              {risks.map((risk) => (
+              {risks.map((item) => {
+                const risk = displayRisk(item)
+                return (
                 <RiskCard
-                  key={risk.id}
+                  key={`${risk.risk_type}-${risk.column || 'dataset'}`}
                   risk={risk}
                   onInvestigate={() => handleInvestigate(risk)}
                 />
-              ))}
+                )
+              })}
 
             </div>
           )}
@@ -341,17 +383,15 @@ function RiskCard({ risk, onInvestigate }) {
       </div>
 
 
-      {/* Recommended action */}
-      <div className="mt-4 rounded-xl border border-[#6557D8]/20 bg-[#6D5DF6]/5 p-4">
-
-        <p className="text-[11px] font-semibold uppercase tracking-wide text-[#9183FF]">
-          Recommended action
+      <div className="mt-4 rounded-xl border border-[#252D42] bg-[#0A1020]/60 p-4">
+        <p className="text-[11px] font-semibold uppercase tracking-wide text-[#68728A]">
+          Confidence
         </p>
-
         <p className="mt-2 text-sm leading-6 text-[#A7AFC3]">
-          {risk.recommendedAction || 'Not available'}
+          {typeof risk.confidence === 'number'
+            ? `${(risk.confidence * 100).toFixed(1)}%`
+            : 'Not available'}
         </p>
-
       </div>
 
 

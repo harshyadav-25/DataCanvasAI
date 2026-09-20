@@ -1,5 +1,6 @@
 import { useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
+import { login } from '../services/api'
 
 function Login() {
   const navigate = useNavigate()
@@ -9,7 +10,7 @@ function Login() {
 
   const [error, setError] = useState('')
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault()
     setError('')
 
@@ -21,34 +22,14 @@ function Login() {
       return
     }
 
-    const storedUser = localStorage.getItem('datacanvas_user')
-
-    if (!storedUser) {
-      setError('No account found. Please create an account first.')
-      return
-    }
-
-    let user
-
     try {
-      user = JSON.parse(storedUser)
-    } catch {
-      setError('Your saved account data is invalid. Please sign up again.')
-
-      localStorage.removeItem('datacanvas_user')
-      localStorage.removeItem('datacanvas_auth')
-
-      return
+      const data = await login({ email, password })
+      localStorage.setItem('datacanvas_access_token', data.access_token)
+      localStorage.setItem('datacanvas_auth', 'true')
+      navigate('/dashboard', { replace: true })
+    } catch (err) {
+      setError(err.userMessage || 'Unable to sign in. Please try again.')
     }
-
-    if (email !== user.email || password !== user.password) {
-      setError('Invalid email or password.')
-      return
-    }
-
-    localStorage.setItem('datacanvas_auth', 'true')
-
-    navigate('/dashboard', { replace: true })
   }
 
   return (

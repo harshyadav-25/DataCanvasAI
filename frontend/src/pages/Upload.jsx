@@ -1,10 +1,12 @@
 import { useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { uploadDataset } from '../services/api'
+import { useAnalysis } from '../context/AnalysisContext'
 
 function Upload() {
   const fileInputRef = useRef(null)
   const navigate = useNavigate()
+  const { updateAnalysis } = useAnalysis()
 
   const [file, setFile] = useState(null)
   const [isDragging, setIsDragging] = useState(false)
@@ -150,6 +152,12 @@ function Upload() {
         'datacanvas_upload_result',
         JSON.stringify(data)
       )
+      updateAnalysis({
+        datasetId: data.dataset_id,
+        targetColumn: '',
+        problemType: 'classification',
+        identifierColumns: [],
+      })
 
       // Open Dataset Overview
       navigate('/overview')

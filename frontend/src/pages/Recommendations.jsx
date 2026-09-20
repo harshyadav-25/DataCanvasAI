@@ -1,13 +1,32 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
+import { analyzeRisks, generateRecommendations } from '../services/api'
+import { useAnalysis } from '../context/AnalysisContext'
+import StateMessage from '../components/common/StateMessage'
 
 function Recommendations() {
   const [selectedRecommendation, setSelectedRecommendation] = useState(null)
+  const { datasetId, targetColumn } = useAnalysis()
+  const [recommendations, setRecommendations] = useState([])
+  const [state, setState] = useState('loading')
+  const [error, setError] = useState('')
 
-  /*
-   * Backend integration is intentionally not added yet.
-   * Recommendation results will eventually come from the backend/API.
-   */
-  const recommendations = []
+  const loadRecommendations = async () => {
+    if (!datasetId) {
+      setState('empty')
+      return
+    }
+    setState('loading')
+    try {
+      const riskResponse = await analyzeRisks(datasetId, targetColumn || undefined)
+      setRecommendations(await generateRecommendations(riskResponse.findings || []))
+      setState('success')
+    } catch (requestError) {
+      setError(requestError.userMessage || 'Unable to load recommendations.')
+      setState('error')
+    }
+  }
+
+  useEffect(() => { loadRecommendations() }, [datasetId, targetColumn])
 
   return (
     <div className="relative min-h-screen overflow-hidden rounded-3xl bg-[#070B16] px-4 py-6 text-white sm:px-6 lg:px-8">
@@ -18,6 +37,10 @@ function Recommendations() {
       <div className="pointer-events-none absolute -right-24 top-28 h-96 w-96 rounded-full bg-[#3A7BFF]/10 blur-3xl" />
 
       <div className="relative z-10 space-y-6">
+
+        {state === 'loading' && <StateMessage type="loading" title="Loading recommendations" />}
+        {state === 'error' && <StateMessage type="error" title="Unable to load recommendations" message={error} actionLabel="Retry" onAction={loadRecommendations} />}
+        {state === 'empty' && <StateMessage type="empty" title="No dataset available" message="Upload a dataset before recommendations." />}
 
         {/* =====================================================
             HEADER
@@ -132,7 +155,7 @@ function Recommendations() {
 
 
           {/* Empty state */}
-          {recommendations.length === 0 ? (
+          {state === 'success' && recommendations.length === 0 ? (
             <div className="rounded-2xl border border-dashed border-[#343C53] bg-[#0F1526]/80 px-6 py-16 text-center backdrop-blur-xl">
 
               <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl border border-[#6557D8]/30 bg-[#6D5DF6]/10 text-xl font-bold text-[#9A8EFF]">
@@ -154,12 +177,12 @@ function Recommendations() {
               </div>
 
             </div>
-          ) : (
+          ) : state === 'success' ? (
             <div className="grid grid-cols-1 gap-5 xl:grid-cols-2">
 
               {recommendations.map((recommendation) => (
                 <RecommendationCard
-                  key={recommendation.id}
+                  key={`${recommendation.risk_type}-${recommendation.title}`}
                   recommendation={recommendation}
                   onInvestigate={() =>
                     setSelectedRecommendation(recommendation)
@@ -168,7 +191,7 @@ function Recommendations() {
               ))}
 
             </div>
-          )}
+          ) : null}
 
         </section>
 
@@ -193,7 +216,7 @@ function Recommendations() {
                 <p className="mt-2 text-sm text-[#A7AFC3]">
                   Related issue:{' '}
                   <span className="font-semibold text-white">
-                    {selectedRecommendation.relatedIssue || 'Not available'}
+                    {selectedRecommendation.risk_type || 'Not available'}
                   </span>
                 </p>
               </div>
@@ -210,8 +233,7 @@ function Recommendations() {
             </div>
 
             <p className="mt-4 text-xs leading-5 text-[#727C94]">
-              Detailed recommendation information will come from the backend
-              response after API integration.
+              {selectedRecommendation.explanation}
             </p>
 
           </div>
@@ -291,7 +313,7 @@ function RecommendationCard({
         </p>
 
         <p className="mt-1 text-sm font-semibold text-[#D7DBE6]">
-          {recommendation.relatedIssue || 'Not available'}
+          {recommendation.risk_type || 'Not available'}
         </p>
 
       </div>
@@ -301,11 +323,11 @@ function RecommendationCard({
       <div className="mt-4 rounded-xl border border-[#252D42] bg-[#0A1020]/60 p-4">
 
         <p className="text-[11px] font-semibold uppercase tracking-wide text-[#68728A]">
-          Evidence / reason
+          Explanation
         </p>
 
         <p className="mt-2 text-sm leading-6 text-[#A7AFC3]">
-          {recommendation.evidence || 'Not available'}
+          {recommendation.explanation || 'Not available'}
         </p>
 
       </div>
@@ -319,7 +341,7 @@ function RecommendationCard({
         </p>
 
         <p className="mt-2 text-sm leading-6 text-[#A7AFC3]">
-          {recommendation.suggestedAction || 'Not available'}
+          {recommendation.action || 'Not available'}
         </p>
 
       </div>
@@ -329,11 +351,11 @@ function RecommendationCard({
       <div className="mt-4 rounded-xl border border-[#252D42] bg-[#0A1020]/60 p-4">
 
         <p className="text-[11px] font-semibold uppercase tracking-wide text-[#68728A]">
-          Expected impact / context
+          Action priority
         </p>
 
         <p className="mt-2 text-sm leading-6 text-[#A7AFC3]">
-          {recommendation.impact || 'Not available'}
+          {recommendation.priority || 'Not available'}
         </p>
 
       </div>

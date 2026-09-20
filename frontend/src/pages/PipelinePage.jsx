@@ -1,4 +1,7 @@
 import { useState } from 'react'
+import { useEffect } from 'react'
+import { generatePipeline } from '../services/api'
+import { useAnalysis } from '../context/AnalysisContext'
 
 function LoadingState() {
   return (
@@ -75,7 +78,7 @@ function WarningState() {
   )
 }
 
-function ErrorState({ onRetry }) {
+function ErrorState({ onRetry, message }) {
   return (
     <div className="rounded-2xl border border-red-400/20 bg-[#11172A]/80 p-6 backdrop-blur-xl">
       <h3 className="font-semibold text-red-300">
@@ -83,7 +86,7 @@ function ErrorState({ onRetry }) {
       </h3>
 
       <p className="mt-2 text-sm leading-6 text-[#A7AFC3]">
-        Something went wrong while retrieving the pipeline information.
+        {message || 'Something went wrong while retrieving the pipeline information.'}
       </p>
 
       <button
@@ -99,7 +102,17 @@ function ErrorState({ onRetry }) {
 
 function PipelineSteps({ data }) {
   if (!data?.steps?.length) {
-    return <EmptyState type="pipeline" />
+    return (
+      <div className="rounded-2xl border border-dashed border-[#343C53] bg-[#0F1526]/80 px-6 py-14 text-center backdrop-blur-xl">
+        <h2 className="text-base font-semibold text-white">
+          Structured steps are not provided
+        </h2>
+        <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-[#A7AFC3]">
+          The pipeline API returns generated Python code only. Open the Code
+          tab to review the complete generated pipeline.
+        </p>
+      </div>
+    )
   }
 
   return (
@@ -153,7 +166,7 @@ function PipelineSteps({ data }) {
 }
 
 function CodePanel({ code }) {
-  if (!code?.content) {
+  if (!code) {
     return <EmptyState type="code" />
   }
 
@@ -166,13 +179,13 @@ function CodePanel({ code }) {
           </p>
 
           <p className="mt-1 text-sm font-semibold text-white">
-            {code.language || 'Code'}
+            Python
           </p>
         </div>
       </div>
 
       <pre className="max-h-[600px] overflow-auto p-5 text-sm leading-6 text-[#A7AFC3]">
-        <code>{code.content}</code>
+        <code>{code}</code>
       </pre>
     </div>
   )
@@ -180,18 +193,34 @@ function CodePanel({ code }) {
 
 export default function PipelinePage() {
   const [activeTab, setActiveTab] = useState('pipeline')
+  const { targetColumn, problemType, identifierColumns } = useAnalysis()
+  const [pipelineData, setPipelineData] = useState(null)
+  const [pageState, setPageState] = useState('loading')
+  const [error, setError] = useState('')
 
-  // Real backend data will be connected later.
-  // No dummy pipeline steps or generated code are used.
-  const pipelineData = null
-
-  // Future states:
-  // loading | empty | warning | error | success
-  const pageState = 'empty'
-
-  const handleRetry = () => {
-    console.log('Retry pipeline request')
+  const loadPipeline = async () => {
+    if (!targetColumn) {
+      setPageState('empty')
+      return
+    }
+    setPageState('loading')
+    try {
+      setPipelineData(await generatePipeline({
+        target_column: targetColumn,
+        problem_type: problemType,
+        model_name: problemType === 'classification'
+          ? 'logistic_regression'
+          : 'ridge',
+        identifier_columns: identifierColumns,
+      }))
+      setPageState('success')
+    } catch (requestError) {
+      setError(requestError.userMessage || 'Unable to generate pipeline code.')
+      setPageState('error')
+    }
   }
+
+  useEffect(() => { loadPipeline() }, [targetColumn, problemType, identifierColumns])
 
   return (
     <div className="relative min-h-screen overflow-hidden rounded-3xl bg-[#070B16] px-4 py-6 text-white sm:px-6 lg:px-8">
@@ -234,7 +263,7 @@ export default function PipelinePage() {
               </p>
 
               <p className="mt-1 text-sm font-semibold text-[#A7AFC3]">
-                Waiting for results
+                {pipelineData ? 'Complete' : 'Waiting for results'}
               </p>
             </div>
 
@@ -282,7 +311,7 @@ export default function PipelinePage() {
         {pageState === 'warning' && <WarningState />}
 
         {pageState === 'error' && (
-          <ErrorState onRetry={handleRetry} />
+          <ErrorState onRetry={loadPipeline} message={error} />
         )}
 
         {/* =========================================

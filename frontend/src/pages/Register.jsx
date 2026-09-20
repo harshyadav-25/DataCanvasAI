@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import DataPipeline3D from '../components/DataPipeline3D'
+import { signup } from '../services/api'
 
 function Register() {
   const navigate = useNavigate()
@@ -11,7 +12,7 @@ function Register() {
   const [confirmPassword, setConfirmPassword] = useState('')
   const [error, setError] = useState('')
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault()
     setError('')
 
@@ -20,8 +21,8 @@ function Register() {
       return
     }
 
-    if (password.length < 6) {
-      setError('Password must be at least 6 characters long.')
+    if (password.length < 8) {
+      setError('Password must be at least 8 characters long.')
       return
     }
 
@@ -30,37 +31,12 @@ function Register() {
       return
     }
 
-    // Check whether an account already exists
-    const existingUser = localStorage.getItem('datacanvas_user')
-
-    if (existingUser) {
-      try {
-        const user = JSON.parse(existingUser)
-
-        if (user.email === email) {
-          setError('An account with this email already exists.')
-          return
-        }
-      } catch {
-        localStorage.removeItem('datacanvas_user')
-      }
+    try {
+      await signup({ name, email, password })
+      navigate('/login', { replace: true })
+    } catch (err) {
+      setError(err.userMessage || 'Unable to create your account. Please try again.')
     }
-
-    // Store registration details
-    localStorage.setItem(
-      'datacanvas_user',
-      JSON.stringify({
-        name,
-        email,
-        password,
-      })
-    )
-
-    // User is NOT authenticated after signup
-    localStorage.removeItem('datacanvas_auth')
-
-    // Send user to Sign In page
-    navigate('/login', { replace: true })
   }
 
   return (

@@ -31,38 +31,29 @@ const reportSections = [
   },
 ]
 
-function EmptyState() {
-  return (
-    <div className="rounded-2xl border border-dashed border-[#343C53] bg-[#0F1526]/80 px-6 py-14 text-center backdrop-blur-xl">
-      <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl border border-[#6557D8]/30 bg-[#6D5DF6]/10 text-[#9A8EFF]">
-        <svg
-          className="h-7 w-7"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="1.8"
-          viewBox="0 0 24 24"
-          aria-hidden="true"
-        >
-          <path d="M7 3h8l4 4v14H7a2 2 0 01-2-2V5a2 2 0 012-2z" />
-          <path d="M15 3v5h4" />
-          <path d="M8 12h8" />
-          <path d="M8 16h8" />
-        </svg>
-      </div>
-
-      <h2 className="mt-5 text-base font-semibold text-white">
-        No report data available
-      </h2>
-
-      <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-[#A7AFC3]">
-        A report will appear here when the real analysis results are
-        available from the backend.
-      </p>
-    </div>
-  )
-}
-
 export default function ReportPage() {
+  const { datasetId, targetColumn } = useAnalysis()
+  const [report, setReport] = useState(null)
+  const [state, setState] = useState('loading')
+  const [error, setError] = useState('')
+
+  const loadReport = async () => {
+    if (!datasetId || !targetColumn) {
+      setState('empty')
+      return
+    }
+    setState('loading')
+    try {
+      setReport(await generateReport(datasetId, targetColumn))
+      setState('success')
+    } catch (requestError) {
+      setError(requestError.userMessage || 'Unable to load report.')
+      setState('error')
+    }
+  }
+
+  useEffect(() => { loadReport() }, [datasetId, targetColumn])
+
   return (
     <div className="relative min-h-screen overflow-hidden rounded-3xl bg-[#070B16] px-4 py-6 text-white sm:px-6 lg:px-8">
 
@@ -104,7 +95,7 @@ export default function ReportPage() {
               </p>
 
               <p className="mt-1 text-sm font-semibold text-[#A7AFC3]">
-                Waiting for results
+                {state === 'loading' ? 'Loading' : state === 'success' ? 'Complete' : 'Unavailable'}
               </p>
             </div>
 
@@ -115,9 +106,54 @@ export default function ReportPage() {
             REPORT EMPTY STATE
             ========================================= */}
 
-        <section>
-          <EmptyState />
-        </section>
+        {state === 'loading' && <StateMessage type="loading" title="Loading report" />}
+        {state === 'error' && <StateMessage type="error" title="Unable to load report" message={error} actionLabel="Retry" onAction={loadReport} />}
+        {state === 'empty' && <StateMessage type="empty" title="No report data available" message="Select a target column before generating a report." />}
+        {state === 'success' && report && (
+          <section className="grid gap-5 md:grid-cols-2">
+            <div className="rounded-2xl border border-[#343C53] bg-[#10162A]/80 p-5">
+              <p className="text-sm text-[#A7AFC3]">Overall readiness</p>
+              <p className="mt-2 text-4xl font-bold">{report.overall_readiness_score.toFixed(1)}</p>
+            </div>
+            <div className="rounded-2xl border border-[#343C53] bg-[#10162A]/80 p-5">
+              <p className="text-sm text-[#A7AFC3]">Dataset</p>
+              <p className="mt-2 break-all text-sm">{report.dataset_id}</p>
+            </div>
+            <div className="rounded-2xl border border-[#343C53] bg-[#10162A]/80 p-5 md:col-span-2">
+              <h2 className="text-lg font-semibold">Key findings</h2>
+              <div className="mt-4 space-y-3">
+                {report.key_findings.map((finding) => (
+                  <div key={finding.title} className="rounded-xl border border-white/10 p-4">
+                    <p className="font-semibold">{finding.title}</p>
+                    <p className="mt-1 text-sm text-[#A7AFC3]">{finding.explanation}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div className="rounded-2xl border border-[#343C53] bg-[#10162A]/80 p-5 md:col-span-2">
+              <h2 className="text-lg font-semibold">Readiness dimensions</h2>
+              <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                {Object.entries(report.dimension_scores).map(([name, value]) => (
+                  <div key={name} className="rounded-xl border border-white/10 p-3">
+                    <p className="text-xs uppercase text-[#8F98AD]">{name.replaceAll('_', ' ')}</p>
+                    <p className="mt-1 text-xl font-semibold">{value}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div className="rounded-2xl border border-[#343C53] bg-[#10162A]/80 p-5 md:col-span-2">
+              <h2 className="text-lg font-semibold">Recommendations</h2>
+              <div className="mt-4 space-y-3">
+                {report.recommendations.length ? report.recommendations.map((recommendation) => (
+                  <div key={recommendation.title} className="rounded-xl border border-white/10 p-4">
+                    <p className="font-semibold">{recommendation.title}</p>
+                    <p className="mt-1 text-sm text-[#A7AFC3]">{recommendation.explanation}</p>
+                  </div>
+                )) : <p className="text-sm text-[#A7AFC3]">No recommendations returned.</p>}
+              </div>
+            </div>
+          </section>
+        )}
 
         {/* =========================================
             REPORT STRUCTURE
@@ -130,7 +166,7 @@ export default function ReportPage() {
             </h2>
 
             <p className="mt-1 text-sm text-[#8F98AD]">
-              These sections are ready for future real backend data.
+              Sections below reflect what is included in the report response.
             </p>
           </div>
 
@@ -149,7 +185,9 @@ export default function ReportPage() {
                 </p>
 
                 <div className="mt-4 inline-flex rounded-full border border-[#343C53] bg-[#12192B] px-3 py-1 text-[11px] font-semibold text-[#A7AFC3]">
-                  Awaiting data
+                  {section.title === 'Validation' || section.title === 'Pipeline'
+                    ? 'Not included in report response'
+                    : 'Displayed above'}
                 </div>
               </div>
             ))}
@@ -173,9 +211,8 @@ export default function ReportPage() {
               </h2>
 
               <p className="mt-1 text-sm leading-6 text-[#A7AFC3]">
-                Real report content, generation status, and export
-                information will be provided through the future backend
-                report API.
+                Validation and pipeline data are not included in the report
+                endpoint response and are not represented here.
               </p>
             </div>
 
@@ -186,3 +223,7 @@ export default function ReportPage() {
     </div>
   )
 }
+import { useEffect, useState } from 'react'
+import { generateReport } from '../services/api'
+import { useAnalysis } from '../context/AnalysisContext'
+import StateMessage from '../components/common/StateMessage'

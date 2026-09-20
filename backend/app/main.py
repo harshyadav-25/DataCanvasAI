@@ -5,6 +5,7 @@ from app.api.readiness import router as readiness_router
 from app.api.reports import router as reports_router
 from app.api.experiments import router as experiments_router
 from app.api.pipeline import router as pipeline_router
+from app.api.profiling import router as profiling_router
 from app.api.validation import router as validation_router
 
 from app.services.dataset_loader import load_dataset
@@ -75,6 +76,7 @@ app.include_router(preprocessing_router)
 app.include_router(experiments_router)
 app.include_router(pipeline_router)
 app.include_router(validation_router)
+app.include_router(profiling_router)
 @app.exception_handler(UnsupportedFileTypeError)
 async def unsupported_file_type_handler(
     request: Request,

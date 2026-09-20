@@ -1,129 +1,14 @@
 import { useEffect, useState } from 'react'
 
-import ExperimentSelector from '../components/experiment/ExperimentSelector'
-import ExperimentTable from '../components/experiment/ExperimentTable'
-import ExperimentChart from '../components/experiment/ExperimentChart'
-
-const TREATMENT_OPTIONS = [
-  {
-    value: 'impute-missing',
-    label: 'Impute missing values',
-  },
-  {
-    value: 'remove-duplicates',
-    label: 'Remove duplicate rows',
-  },
-  {
-    value: 'scale-numeric',
-    label: 'Scale numeric features',
-  },
-  {
-    value: 'encode-categorical',
-    label: 'Encode categorical features',
-  },
-]
-
-const DEMO_RESULTS = {
-  'impute-missing': {
-    results: [
-      {
-        metric: 'Missing-value coverage',
-        baseline: '12.4%',
-        treated: '2.1%',
-        change: '-10.3 pp',
-      },
-      {
-        metric: 'Rows retained',
-        baseline: '100%',
-        treated: '100%',
-        change: '0 pp',
-      },
-      {
-        metric: 'Feature coverage',
-        baseline: '87.6%',
-        treated: '97.9%',
-        change: '+10.3 pp',
-      },
-    ],
-  },
-
-  'remove-duplicates': {
-    results: [
-      {
-        metric: 'Duplicate-row share',
-        baseline: '4.8%',
-        treated: '0.0%',
-        change: '-4.8 pp',
-      },
-      {
-        metric: 'Rows retained',
-        baseline: '100%',
-        treated: '95.2%',
-        change: '-4.8 pp',
-      },
-      {
-        metric: 'Unique-row coverage',
-        baseline: '95.2%',
-        treated: '100%',
-        change: '+4.8 pp',
-      },
-    ],
-  },
-
-  'scale-numeric': {
-    results: [
-      {
-        metric: 'Numeric feature coverage',
-        baseline: '100%',
-        treated: '100%',
-        change: '0 pp',
-      },
-      {
-        metric: 'Scale alignment',
-        baseline: 'Mixed',
-        treated: 'Aligned',
-        change: 'Updated',
-      },
-      {
-        metric: 'Rows retained',
-        baseline: '100%',
-        treated: '100%',
-        change: '0 pp',
-      },
-    ],
-  },
-
-  'encode-categorical': {
-    results: [
-      {
-        metric: 'Categorical feature coverage',
-        baseline: '100%',
-        treated: '100%',
-        change: '0 pp',
-      },
-      {
-        metric: 'Encoding readiness',
-        baseline: 'Pending',
-        treated: 'Prepared',
-        change: 'Updated',
-      },
-      {
-        metric: 'Rows retained',
-        baseline: '100%',
-        treated: '100%',
-        change: '0 pp',
-      },
-    ],
-  },
-}
+import { compareExperiments } from '../services/api'
+import { useAnalysis } from '../context/AnalysisContext'
 
 const HISTORY_KEY = 'datacanvas_experiment_history'
 
 function ExperimentsPage() {
-  const [selectedTreatment, setSelectedTreatment] = useState('')
+  const { datasetId, targetColumn, problemType, identifierColumns } = useAnalysis()
   const [isRunning, setIsRunning] = useState(false)
-  const [results, setResults] = useState([])
-  const [comparisonData, setComparisonData] = useState([])
+  const [comparison, setComparison] = useState(null)
   const [error, setError] = useState('')
   const [history, setHistory] = useState([])
 
@@ -148,14 +33,6 @@ function ExperimentsPage() {
     }
   }, [])
 
-  const getTreatmentLabel = (value) => {
-    return (
-      TREATMENT_OPTIONS.find(
-        (option) => option.value === value
-      )?.label || value
-    )
-  }
-
   const saveHistory = (nextHistory) => {
     setHistory(nextHistory)
 
@@ -172,38 +49,34 @@ function ExperimentsPage() {
     }
   }
 
-  const handleRun = () => {
-    if (!selectedTreatment || isRunning) {
+  const handleRun = async () => {
+    if (isRunning) {
       return
     }
 
     setIsRunning(true)
     setError('')
-    setResults([])
-    setComparisonData([])
+    setComparison(null)
 
-    window.setTimeout(() => {
-      try {
-        const selectedResult = DEMO_RESULTS[selectedTreatment]
-
-        if (!selectedResult) {
-          throw new Error(
-            'No preview result is available for this treatment.'
-          )
+    try {
+        if (!datasetId || !targetColumn) {
+          throw new Error('Select a dataset and target column before comparing models.')
         }
 
-        const nextResults = selectedResult.results
-
-        setResults(nextResults)
-        setComparisonData(nextResults)
+        const response = await compareExperiments({
+          datasetId,
+          targetColumn,
+          problemType,
+          identifierColumns,
+        })
+        setComparison(response)
 
         const newHistoryItem = {
-          id: `${Date.now()}-${selectedTreatment}`,
-          treatment: selectedTreatment,
-          treatmentLabel: getTreatmentLabel(selectedTreatment),
+          id: `${Date.now()}-${response.primary_metric}`,
+          treatmentLabel: 'Backend model comparison',
           status: 'Completed',
           createdAt: new Date().toLocaleString(),
-          source: 'Demo',
+          source: 'Backend',
         }
 
         const nextHistory = [
@@ -218,17 +91,14 @@ function ExperimentsPage() {
           runError
         )
 
-        setError(
-          'The experiment preview could not be generated. Please try again.'
-        )
-      } finally {
-        setIsRunning(false)
-      }
-    }, 900)
+        setError(runError.userMessage || runError.message || 'The model comparison could not be generated. Please try again.')
+    } finally {
+      setIsRunning(false)
+    }
   }
 
   const handleRetry = () => {
-    if (!selectedTreatment || isRunning) {
+    if (isRunning) {
       return
     }
 
@@ -238,9 +108,6 @@ function ExperimentsPage() {
   const handleClearHistory = () => {
     saveHistory([])
   }
-
-  const selectedTreatmentLabel =
-    getTreatmentLabel(selectedTreatment)
 
   return (
     <div className="relative min-h-screen overflow-hidden text-white">
@@ -267,15 +134,15 @@ function ExperimentsPage() {
                 </span>
 
                 <h1 className="mt-2 text-3xl font-bold tracking-tight text-white md:text-4xl">
-                  What-If{' '}
+                  Model{' '}
                   <span className="bg-gradient-to-r from-[#A794FF] via-[#8D89FF] to-[#58D7FF] bg-clip-text text-transparent">
-                    Simulator
+                    Comparison
                   </span>
                 </h1>
 
                 <p className="mt-2 max-w-3xl text-sm leading-7 text-[#8D98B0] md:text-base">
-                  Test preprocessing treatments and compare their preview
-                  results against the current baseline.
+                  Compare backend-evaluated models using cross-validation
+                  metrics for the selected dataset.
                 </p>
               </div>
 
@@ -313,8 +180,8 @@ function ExperimentsPage() {
                 </h2>
 
                 <p className="mt-2 max-w-2xl text-sm leading-6 text-[#7E899F]">
-                  The baseline is the reference state used for this experiment
-                  preview.
+                  The backend compares supported models using the selected
+                  target and problem type.
                 </p>
               </div>
 
@@ -332,21 +199,21 @@ function ExperimentsPage() {
 
                 <div className="rounded-xl border border-white/[0.06] bg-white/[0.025] px-4 py-3">
                   <p className="text-[10px] uppercase tracking-wide text-[#68728A]">
-                    Treatment
+                    Target
                   </p>
 
                   <p className="mt-1 text-sm font-semibold text-white">
-                    None
+                    {targetColumn || 'Not selected'}
                   </p>
                 </div>
 
                 <div className="col-span-2 rounded-xl border border-[#F2B84B]/20 bg-[#F2B84B]/[0.05] px-4 py-3 sm:col-span-1">
                   <p className="text-[10px] uppercase tracking-wide text-[#F2C46B]">
-                    Result source
+                    Metric
                   </p>
 
                   <p className="mt-1 text-sm font-semibold text-[#F2C46B]">
-                    Demo preview
+                    {comparison?.primary_metric || 'Pending'}
                   </p>
                 </div>
 
@@ -357,50 +224,28 @@ function ExperimentsPage() {
         </section>
 
 
-        {/* =====================================================
-            TREATMENT
-        ====================================================== */}
-
         <section className="mx-auto max-w-6xl">
-          <ExperimentSelector
-            options={TREATMENT_OPTIONS}
-            selectedTreatment={selectedTreatment}
-            onTreatmentChange={(value) => {
-              setSelectedTreatment(value)
-              setError('')
-            }}
-            onRun={handleRun}
-            isRunning={isRunning}
-          />
+          <div className="rounded-2xl border border-white/[0.08] bg-[#0A1020]/70 p-5 shadow-xl">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#A69CFF]">
+              MODEL COMPARISON
+            </p>
+            <h2 className="mt-2 text-xl font-bold text-white">
+              Compare available models
+            </h2>
+            <p className="mt-2 text-sm leading-6 text-[#8D98B0]">
+              Run the existing backend experiment comparison engine for this
+              dataset.
+            </p>
+            <button
+              type="button"
+              onClick={handleRun}
+              disabled={isRunning || !datasetId || !targetColumn}
+              className="mt-5 rounded-xl bg-gradient-to-r from-[#5148D8] to-[#756BFF] px-6 py-3 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {isRunning ? 'Comparing models...' : 'Run model comparison'}
+            </button>
+          </div>
         </section>
-
-
-        {/* =====================================================
-            ACTIVE TREATMENT
-        ====================================================== */}
-
-        {selectedTreatment && (
-          <section className="mx-auto max-w-6xl">
-            <div className="rounded-2xl border border-[#756BFF]/15 bg-gradient-to-r from-[#5148D8]/[0.10] via-[#090E1D]/80 to-[#2563EB]/[0.08] p-5">
-
-              <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#A69CFF]">
-                ACTIVE TREATMENT
-              </p>
-
-              <div className="mt-2 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-
-                <h2 className="text-lg font-bold text-white">
-                  {selectedTreatmentLabel}
-                </h2>
-
-                <span className="w-fit rounded-full border border-[#756BFF]/20 bg-[#756BFF]/[0.06] px-3 py-1.5 text-[11px] font-semibold text-[#B8B1FF]">
-                  {isRunning ? 'Running...' : 'Ready to run'}
-                </span>
-
-              </div>
-            </div>
-          </section>
-        )}
 
 
         {/* =====================================================
@@ -415,7 +260,7 @@ function ExperimentsPage() {
 
                 <div>
                   <p className="text-sm font-semibold text-red-200">
-                    Experiment preview failed
+                    Model comparison failed
                   </p>
 
                   <p className="mt-1 text-sm leading-6 text-red-200/70">
@@ -426,7 +271,7 @@ function ExperimentsPage() {
                 <button
                   type="button"
                   onClick={handleRetry}
-                  disabled={isRunning || !selectedTreatment}
+                  disabled={isRunning || !datasetId || !targetColumn}
                   className="w-fit rounded-lg border border-red-300/20 bg-red-400/[0.06] px-4 py-2.5 text-sm font-semibold text-red-200 transition hover:bg-red-400/[0.10] disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   Retry
@@ -456,11 +301,11 @@ function ExperimentsPage() {
               </h2>
 
               <p className="mt-1 text-sm text-[#7F8BA2]">
-                Review the selected treatment against the baseline.
+                Review the backend model comparison results.
               </p>
             </div>
 
-            {results.length > 0 && (
+            {comparison?.results?.length > 0 && (
               <span className="w-fit rounded-full border border-[#22C55E]/20 bg-[#22C55E]/[0.06] px-3 py-1.5 text-[11px] font-semibold text-[#5BE58A]">
                 Completed
               </span>
@@ -468,10 +313,38 @@ function ExperimentsPage() {
 
           </div>
 
-          <ExperimentTable
-            results={results}
-            isDemo
-          />
+          {comparison?.results?.length ? (
+            <div className="overflow-x-auto rounded-2xl border border-white/[0.08] bg-[#080D1B]/70">
+              <table className="w-full min-w-[650px] text-left">
+                <thead className="border-b border-white/[0.07]">
+                  <tr>
+                    <th className="px-5 py-4 text-xs uppercase text-[#68728A]">Model</th>
+                    <th className="px-5 py-4 text-xs uppercase text-[#68728A]">Metric</th>
+                    <th className="px-5 py-4 text-xs uppercase text-[#68728A]">Mean</th>
+                    <th className="px-5 py-4 text-xs uppercase text-[#68728A]">Std. dev.</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {comparison.results.map((result) => (
+                    <tr key={result.model_name} className="border-b border-white/[0.05]">
+                      <td className="px-5 py-4 text-sm font-semibold text-white">{result.model_name}</td>
+                      <td className="px-5 py-4 text-sm text-[#A7AFC3]">{comparison.primary_metric}</td>
+                      <td className="px-5 py-4 text-sm text-white">
+                        {Number(result.mean_metrics?.[comparison.primary_metric]).toFixed(4)}
+                      </td>
+                      <td className="px-5 py-4 text-sm text-[#A7AFC3]">
+                        {Number(result.std_metrics?.[comparison.primary_metric]).toFixed(4)}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          ) : (
+            <div className="rounded-2xl border border-dashed border-white/[0.1] p-8 text-center text-sm text-[#758198]">
+              Run the comparison to display backend model results.
+            </div>
+          )}
 
         </section>
 
@@ -492,14 +365,15 @@ function ExperimentsPage() {
             </h2>
 
             <p className="mt-1 text-sm text-[#7F8BA2]">
-              Compare the baseline and treated preview values.
+              Compare backend model metrics for the primary metric.
             </p>
           </div>
 
-          <ExperimentChart
-            data={comparisonData}
-            isDemo
-          />
+          <div className="rounded-2xl border border-white/[0.08] bg-[#080D1B]/70 p-5 text-sm text-[#A7AFC3]">
+            {comparison
+              ? `Primary metric: ${comparison.primary_metric}. Mean and standard deviation are shown in the results table.`
+              : 'Comparison results will appear after the backend comparison is run.'}
+          </div>
 
         </section>
 
@@ -522,7 +396,7 @@ function ExperimentsPage() {
               </h2>
 
               <p className="mt-1 text-sm text-[#7F8BA2]">
-                Recent demo experiment runs saved on this device.
+                Recent backend comparison runs saved on this device.
               </p>
             </div>
 
@@ -550,7 +424,7 @@ function ExperimentsPage() {
               </h3>
 
               <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-[#758198]">
-                Run a treatment preview and it will appear here.
+                Run a model comparison and it will appear here.
               </p>
 
             </div>
@@ -603,9 +477,6 @@ function ExperimentsPage() {
         <section className="mx-auto max-w-6xl pb-5">
           <div className="rounded-2xl border border-white/[0.06] bg-white/[0.015] px-5 py-4">
             <p className="text-xs leading-5 text-[#657189]">
-              Demo note: the values displayed here are illustrative frontend
-              demo data. They are not calculated from the uploaded dataset or
-              presented as real ML results.
             </p>
           </div>
         </section>

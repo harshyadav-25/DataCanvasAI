@@ -4,7 +4,7 @@ function ProtectedRoute({ children }) {
   const location = useLocation()
 
   const isAuthenticated =
-    localStorage.getItem('datacanvas_auth') === 'true'
+    Boolean(localStorage.getItem('datacanvas_access_token'))
 
   if (!isAuthenticated) {
     return (
