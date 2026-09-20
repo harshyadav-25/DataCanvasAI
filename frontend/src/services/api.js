@@ -61,3 +61,35 @@ export const uploadDataset = async (file) => {
 }
 
 export default API
+
+// =====================================================
+// VALIDATION
+// =====================================================
+
+export const analyzeValidation = async ({
+  datasetId,
+  targetColumn,
+  problemType,
+  identifierColumns = [],
+  nSplits = 5,
+}) => {
+  try {
+    const response = await API.post(
+      `/validation/analyze/${datasetId}`,
+      null,
+      {
+        params: {
+          target_column: targetColumn,
+          problem_type: problemType,
+          identifier_columns: identifierColumns,
+          n_splits: nSplits,
+        },
+      },
+    )
+
+    return response.data
+  } catch (error) {
+    error.userMessage = getApiErrorMessage(error)
+    throw error
+  }
+}
