@@ -1,6 +1,7 @@
 from fastapi import FastAPI, UploadFile, File, Request, Depends
 from fastapi.responses import JSONResponse
 from app.api.simulation import router as simulation_router
+from app.api.readiness import router as readiness_router
 
 from app.services.dataset_loader import load_dataset
 from app.api.risks import router as risks_router
@@ -63,6 +64,7 @@ app.include_router(auth_router, tags=["Authentication"])
 app.include_router(recommendations_router)
 app.include_router(risks_router)
 app.include_router(simulation_router)
+app.include_router(readiness_router)
 
 
 @app.exception_handler(UnsupportedFileTypeError)
