@@ -10,6 +10,7 @@ from app.api.recommendations import router as recommendations_router
 from app.services.dataset_validator import validate_dataset
 from app.schemas.dataset import DatasetUploadResponse
 from app.schemas.error import ErrorResponse
+from app.api.preprocessing import router as preprocessing_router
 from uuid import uuid4
 from app.models.dataset import DatasetRecord
 from app.services.registry import dataset_registry
@@ -67,6 +68,7 @@ app.include_router(risks_router)
 app.include_router(simulation_router)
 app.include_router(readiness_router)
 app.include_router(reports_router)
+app.include_router(preprocessing_router)
 
 
 @app.exception_handler(UnsupportedFileTypeError)
