@@ -32,6 +32,31 @@ def test_generate_recommendations():
     assert len(data) == 1
     assert data[0]["risk_type"] == "MISSING_VALUES"
     assert data[0]["priority"] == "HIGH"
+
+
+def test_generate_recommendations_for_identifier_like_column_risk():
+    response = client.post(
+        "/recommendations/generate",
+        json=[
+            {
+                "risk_type": "IDENTIFIER_LIKE_COLUMN",
+                "severity": "HIGH",
+                "column": "Name",
+                "title": "Identifier-like feature detected",
+                "evidence": {"uniqueness_ratio": 1.0},
+                "explanation": "The column has very high uniqueness.",
+                "confidence": 0.9,
+            }
+        ],
+    )
+
+    assert response.status_code == 200
+
+    recommendation = response.json()[0]
+    assert recommendation["risk_type"] == "IDENTIFIER_LIKE_COLUMN"
+    assert recommendation["title"] == "Review identifier-like column"
+    assert recommendation["priority"] == "HIGH"
+    assert "excluded" in recommendation["action"].lower()
     
 def test_generate_recommendations_prioritizes_risks():
     payload = [

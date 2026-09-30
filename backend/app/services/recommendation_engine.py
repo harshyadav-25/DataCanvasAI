@@ -37,7 +37,7 @@ def generate_recommendation(risk: RiskFinding) -> Recommendation:
             ),
         )
 
-    if risk.risk_type == "IDENTIFIER_LIKE":
+    if risk.risk_type in {"IDENTIFIER_LIKE", "IDENTIFIER_LIKE_COLUMN"}:
         return Recommendation(
             risk_type=risk.risk_type,
             title="Review identifier-like column",
