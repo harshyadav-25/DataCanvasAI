@@ -1,12 +1,17 @@
 from __future__ import annotations
 
-
 import pandas as pd
 from sklearn.base import BaseEstimator, TransformerMixin
 from sklearn.compose import ColumnTransformer
 from sklearn.impute import SimpleImputer
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import OneHotEncoder
+
+
+HIGH_CARDINALITY_THRESHOLD = 50
+HIGH_CARDINALITY_MIN_FREQUENCY = 10
+
+
 class DatetimeFeatures(BaseEstimator, TransformerMixin):
     """
     Convert datetime columns into numeric calendar features.
@@ -58,6 +63,8 @@ class PreprocessingEngine:
     - Impute missing numeric values using the median.
     - Impute missing categorical values using the most frequent value.
     - One-hot encode categorical features.
+    - Protect high-cardinality categorical features from feature explosion.
+    - Convert datetime columns into numeric calendar features.
     - Fit preprocessing only on the supplied training data.
     """
 
@@ -103,6 +110,7 @@ class PreprocessingEngine:
             .columns
             .tolist()
         )
+
         self.datetime_columns = (
             features
             .select_dtypes(include=["datetime", "datetimetz"])
@@ -121,6 +129,9 @@ class PreprocessingEngine:
 
         transformers = []
 
+        # ---------------------------------------------------------
+        # Numeric features
+        # ---------------------------------------------------------
         if self.numeric_columns:
             numeric_pipeline = Pipeline(
                 steps=[
@@ -139,30 +150,79 @@ class PreprocessingEngine:
                 )
             )
 
+        # ---------------------------------------------------------
+        # Categorical features
+        # ---------------------------------------------------------
         if self.categorical_columns:
-            categorical_pipeline = Pipeline(
-                steps=[
-                    (
-                        "imputer",
-                        SimpleImputer(strategy="most_frequent"),
-                    ),
-                    (
-                        "encoder",
-                        OneHotEncoder(
-                            handle_unknown="ignore",
-                            sparse_output=False,
-                        ),
-                    ),
-                ]
-            )
+            high_cardinality_columns = [
+                column
+                for column in self.categorical_columns
+                if features[column].nunique(dropna=True)
+                > HIGH_CARDINALITY_THRESHOLD
+            ]
 
-            transformers.append(
-                (
-                    "categorical",
-                    categorical_pipeline,
-                    self.categorical_columns,
+            low_cardinality_columns = [
+                column
+                for column in self.categorical_columns
+                if column not in high_cardinality_columns
+            ]
+
+            # Normal categorical columns keep the original behavior.
+            if low_cardinality_columns:
+                low_cardinality_pipeline = Pipeline(
+                    steps=[
+                        (
+                            "imputer",
+                            SimpleImputer(strategy="most_frequent"),
+                        ),
+                        (
+                            "encoder",
+                            OneHotEncoder(
+                                handle_unknown="ignore",
+                                sparse_output=False,
+                            ),
+                        ),
+                    ]
                 )
-            )
+
+                transformers.append(
+                    (
+                        "categorical",
+                        low_cardinality_pipeline,
+                        low_cardinality_columns,
+                    )
+                )
+
+            # High-cardinality columns group rare categories.
+            if high_cardinality_columns:
+                high_cardinality_pipeline = Pipeline(
+                    steps=[
+                        (
+                            "imputer",
+                            SimpleImputer(strategy="most_frequent"),
+                        ),
+                        (
+                            "encoder",
+                            OneHotEncoder(
+                                handle_unknown="ignore",
+                                min_frequency=HIGH_CARDINALITY_MIN_FREQUENCY,
+                                sparse_output=False,
+                            ),
+                        ),
+                    ]
+                )
+
+                transformers.append(
+                    (
+                        "high_cardinality_categorical",
+                        high_cardinality_pipeline,
+                        high_cardinality_columns,
+                    )
+                )
+
+        # ---------------------------------------------------------
+        # Datetime features
+        # ---------------------------------------------------------
         if self.datetime_columns:
             datetime_pipeline = Pipeline(
                 steps=[
@@ -184,6 +244,7 @@ class PreprocessingEngine:
                     self.datetime_columns,
                 )
             )
+
         self.pipeline = ColumnTransformer(
             transformers=transformers,
             remainder="drop",
@@ -261,6 +322,7 @@ class PreprocessingEngine:
             )
 
         return self.pipeline.get_feature_names_out().tolist()
+
     def get_feature_groups(self) -> dict[str, list[str]]:
         """
         Return the feature groups identified during preprocessing.
@@ -323,4 +385,3 @@ class PreprocessingEngine:
             raise ValueError(
                 f"Columns contain no valid values: {all_missing}"
             )
-

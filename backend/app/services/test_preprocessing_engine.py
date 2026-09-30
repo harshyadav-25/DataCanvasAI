@@ -25,7 +25,7 @@ def test_numeric_missing_values_use_median_imputation():
 
     # Median of [20, 21, 23] = 21
     assert transformed[2, 0] == 21
-    
+
 def test_categorical_missing_values_use_most_frequent_imputation():
     dataframe = pd.DataFrame(
         {
@@ -55,7 +55,7 @@ def test_categorical_columns_are_one_hot_encoded():
 
     # Two unique categories → two encoded features.
     assert transformed.shape == (3, 2)
-    
+
 def test_unknown_category_is_ignored_during_transform():
     train = pd.DataFrame(
         {
@@ -96,7 +96,7 @@ def test_target_column_is_excluded():
 
     assert transformed.shape == (3, 1)
     assert all("Target" not in name for name in feature_names)
-    
+
 def test_identifier_columns_are_excluded():
     dataframe = pd.DataFrame(
         {
@@ -117,7 +117,7 @@ def test_identifier_columns_are_excluded():
 
     assert transformed.shape == (3, 1)
     assert all("CustomerID" not in name for name in feature_names)
-    
+
 
 
 
@@ -136,7 +136,7 @@ def test_transform_before_fit_raises_error():
         match="must be fitted",
     ):
         engine.transform(dataframe)
-        
+
 def test_missing_target_column_raises_error():
     dataframe = pd.DataFrame(
         {
@@ -167,7 +167,7 @@ def test_all_missing_feature_column_raises_error():
         match="no valid values",
     ):
         engine.fit(dataframe)
-        
+
 def test_fit_uses_training_data_only():
     train = pd.DataFrame(
         {
@@ -212,7 +212,7 @@ def test_datetime_features_are_extracted():
     assert transformed["Signup_Date__month"].tolist() == [1, 2]
     assert transformed["Signup_Date__day"].tolist() == [15, 20]
     assert transformed["Signup_Date__day_of_week"].tolist() == [3, 4]
-    
+
 def test_datetime_columns_are_detected_separately():
     dataframe = pd.DataFrame(
         {
@@ -231,7 +231,7 @@ def test_datetime_columns_are_detected_separately():
     assert engine.numeric_columns == ["Age"]
     assert engine.datetime_columns == ["Signup_Date"]
     assert engine.categorical_columns == []
-    
+
 def test_mixed_numeric_categorical_and_datetime_features():
     dataframe = pd.DataFrame(
         {
@@ -263,7 +263,7 @@ def test_mixed_numeric_categorical_and_datetime_features():
     assert "datetime__Signup_Date__day_of_week" in feature_names
 
     assert all("Target" not in name for name in feature_names)
-    
+
 def test_datetime_missing_values_are_imputed():
     dataframe = pd.DataFrame(
         {
@@ -336,3 +336,20 @@ def test_cross_validation_does_not_preprocess_before_splitting():
     y = np.array([0, 0, 1, 1, 0, 1])
 
     assert len(X) == len(y)
+
+def test_high_cardinality_categorical_column_does_not_explode_features():
+    dataframe = pd.DataFrame(
+        {
+            "Category": [f"value_{i}" for i in range(200)],
+            "Target": [i % 2 for i in range(200)],
+        }
+    )
+
+    engine = PreprocessingEngine(target_column="Target")
+
+    transformed = engine.fit_transform(dataframe)
+
+    # Rare categories should be grouped instead of creating
+    # one feature per unique category.
+    assert transformed.shape[0] == 200
+    assert transformed.shape[1] < 200
