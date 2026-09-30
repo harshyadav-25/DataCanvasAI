@@ -178,10 +178,16 @@ def test_run_experiment_comparison_with_classification_dataset():
         }
     )
 
+    # clear experiment cache so this test is not affected by other tests
+    import app.services.experiment_cache as ec
+    ec.clear_cache()
+
     comparison = run_experiment_comparison(
         dataframe=dataframe,
+        dataset_id="engine-test-cls",
         target_column="target",
         problem_type=TargetProblemType.CLASSIFICATION,
+        model_names=["catboost", "xgboost"],
         n_splits=5,
     )
 

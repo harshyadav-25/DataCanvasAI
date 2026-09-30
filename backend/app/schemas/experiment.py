@@ -6,6 +6,7 @@ from app.schemas.target import TargetProblemType
 class ExperimentResult(BaseModel):
     model_name: str = Field(min_length=1)
     problem_type: TargetProblemType
+    fold_metrics: list[dict[str, float]]
     mean_metrics: dict[str, float]
     std_metrics: dict[str, float]
 

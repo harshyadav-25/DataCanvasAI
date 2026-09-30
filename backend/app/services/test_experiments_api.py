@@ -54,6 +54,9 @@ def setup_dataset():
 
 
 def test_compare_experiments_api():
+    from app.services import experiment_cache
+    experiment_cache.clear_cache()
+
     setup_dataset()
 
     response = client.post(
@@ -61,7 +64,8 @@ def test_compare_experiments_api():
         params={
             "target_column": "target",
             "problem_type": "classification",
-            "n_splits": 5,
+            "model_names": ["catboost", "xgboost"],
+            "n_splits": 2,
         },
     )
 
