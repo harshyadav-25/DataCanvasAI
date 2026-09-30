@@ -1,4 +1,5 @@
 import axios from 'axios'
+import { getHistoryStorageKey, recordApiActivity } from './history'
 
 const API = axios.create({
   baseURL:
@@ -39,6 +40,9 @@ export const getApiErrorMessage = (error) => {
   if (error?.response?.data?.error?.message) {
     return error.response.data.error.message
   }
+  if (typeof error?.response?.data?.detail === 'string') {
+    return error.response.data.detail
+  }
 
   // Backend returned simple message
   if (error?.response?.data?.message) {
@@ -67,16 +71,30 @@ export const uploadDataset = async (file) => {
   const formData = new FormData()
 
   formData.append('file', file)
+  const historyStorageKey = getHistoryStorageKey()
 
   try {
     const response = await API.post('/upload', formData)
 
+    recordApiActivity({
+      storageKey: historyStorageKey,
+      url: '/upload',
+      response: response.data,
+      status: 'Completed',
+    })
     return response.data
   } catch (error) {
     // Keep original Axios error so existing Upload.jsx
     // error handling continues to work.
 
     error.userMessage = getApiErrorMessage(error)
+    recordApiActivity({
+      storageKey: historyStorageKey,
+      url: '/upload',
+      response: { filename: file.name },
+      status: 'Failed',
+      errorMessage: error.userMessage,
+    })
 
     throw error
   }
@@ -119,11 +137,26 @@ export const uploadDataset = async (file) => {
   }
 
   const request = async (method, url, options = {}) => {
+    const historyStorageKey = getHistoryStorageKey()
     try {
       const response = await API.request({ method, url, ...options })
+      recordApiActivity({
+        storageKey: historyStorageKey,
+        url,
+        options,
+        response: response.data,
+        status: 'Completed',
+      })
       return response.data
     } catch (error) {
       error.userMessage = getApiErrorMessage(error)
+      recordApiActivity({
+        storageKey: historyStorageKey,
+        url,
+        options,
+        status: 'Failed',
+        errorMessage: error.userMessage,
+      })
       throw error
     }
   }
@@ -156,17 +189,36 @@ export const uploadDataset = async (file) => {
     datasetId,
     targetColumn,
     problemType,
+    modelNames = [],
     identifierColumns = [],
     nSplits = 3,
-  }) =>
-    request('post', `/experiments/compare/${datasetId}`, {
-      params: {
-        target_column: targetColumn,
-        problem_type: problemType,
-        identifier_columns: identifierColumns,
-        n_splits: nSplits,
+    bypassCache = false,
+  }) => {
+    // Axios serialises repeated params correctly when value is an array
+    const params = {
+      target_column: targetColumn,
+      problem_type: problemType,
+      n_splits: nSplits,
+      bypass_cache: bypassCache,
+    }
+
+    // Only append array params when they are non-empty, so FastAPI
+    // receives no param at all (and falls back to defaults) vs []
+    if (modelNames.length > 0) {
+      params.model_names = modelNames
+    }
+    if (identifierColumns.length > 0) {
+      params.identifier_columns = identifierColumns
+    }
+
+    return request('post', `/experiments/compare/${datasetId}`, {
+      params,
+      paramsSerializer: {
+        indexes: null,
       },
+      timeout: 120000, // 2 minutes — do NOT increase global timeout
     })
+  }
 
   export const generatePipeline = (payload) =>
     request('post', '/pipeline/generate', { data: payload })
@@ -174,6 +226,29 @@ export const uploadDataset = async (file) => {
   export const generateReport = (datasetId, targetColumn) =>
     request('post', `/reports/generate/${datasetId}`, {
       params: { target_column: targetColumn },
+    })
+
+  export const analyzeVisualization = (datasetId, targetColumn) =>
+    request('post', `/visualization/analyze/${datasetId}`, {
+      params: targetColumn ? { target_column: targetColumn } : {},
+    })
+
+  export const trainModel = ({
+    datasetId,
+    targetColumn,
+    problemType,
+    modelName,
+    identifierColumns = [],
+    nSplits = 2,
+  }) =>
+    request('post', `/modeling/train/${datasetId}`, {
+      params: {
+        target_column: targetColumn,
+        problem_type: problemType,
+        model_name: modelName,
+        identifier_columns: identifierColumns,
+        n_splits: nSplits,
+      },
     })
 export default API
 
@@ -186,25 +261,46 @@ export const analyzeValidation = async ({
   targetColumn,
   problemType,
   identifierColumns = [],
+  modelNames = [],
   nSplits = 3,
 }) => {
+  const url = `/validation/analyze/${datasetId}`
+  const options = {
+    params: {
+      target_column: targetColumn,
+      problem_type: problemType,
+      identifier_columns: identifierColumns,
+      model_names: modelNames,
+      n_splits: nSplits,
+    },
+    paramsSerializer: { indexes: null },
+    timeout: 120000,
+  }
+  const historyStorageKey = getHistoryStorageKey()
   try {
     const response = await API.post(
-      `/validation/analyze/${datasetId}`,
+      url,
       null,
-      {
-        params: {
-          target_column: targetColumn,
-          problem_type: problemType,
-          identifier_columns: identifierColumns,
-          n_splits: nSplits,
-        },
-      },
+      options,
     )
 
+    recordApiActivity({
+      storageKey: historyStorageKey,
+      url,
+      options,
+      response: response.data,
+      status: 'Completed',
+    })
     return response.data
   } catch (error) {
     error.userMessage = getApiErrorMessage(error)
+    recordApiActivity({
+      storageKey: historyStorageKey,
+      url,
+      options,
+      status: 'Failed',
+      errorMessage: error.userMessage,
+    })
     throw error
   }
 }

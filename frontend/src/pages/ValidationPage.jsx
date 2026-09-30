@@ -2,6 +2,23 @@ import { useEffect, useRef, useState } from 'react'
 import { analyzeValidation } from '../services/api'
 import { useAnalysis } from '../context/AnalysisContext'
 
+const classificationModels = [
+  { id: 'catboost', label: 'CatBoost' },
+  { id: 'xgboost', label: 'XGBoost' },
+  { id: 'lightgbm', label: 'LightGBM' },
+  { id: 'hist_gradient_boosting', label: 'Hist Gradient Boosting' },
+  { id: 'logistic_regression', label: 'Logistic Regression' },
+]
+
+const regressionModels = [
+  { id: 'catboost', label: 'CatBoost' },
+  { id: 'xgboost', label: 'XGBoost' },
+  { id: 'lightgbm', label: 'LightGBM' },
+  { id: 'hist_gradient_boosting', label: 'Hist Gradient Boosting' },
+  { id: 'linear_regression', label: 'Linear Regression' },
+  { id: 'ridge', label: 'Ridge Regression' },
+]
+
 const classificationMetricNames = [
   'Accuracy',
   'Precision',
@@ -218,9 +235,18 @@ function ErrorState({ onRetry, message }) {
 function ValidationPage() {
   const { datasetId, targetColumn, problemType, identifierColumns, updateAnalysis } = useAnalysis()
   const [validationData, setValidationData] = useState(null)
-  const [validationState, setValidationState] = useState('loading')
+  const [validationState, setValidationState] = useState('empty') // 'empty', 'loading', 'success', 'warning', 'error'
   const [error, setError] = useState('')
   const requestIdRef = useRef(0)
+  const availableModels =
+  problemType === 'classification'
+    ? classificationModels
+    : regressionModels
+
+  const [selectedModels, setSelectedModels] = useState([])
+  useEffect(() => {
+    setSelectedModels([])
+  }, [problemType])
 
   /*
     =========================================================
@@ -272,6 +298,7 @@ function ValidationPage() {
         targetColumn,
         problemType,
         identifierColumns,
+        modelNames: selectedModels,
       })
       if (!response || !Array.isArray(response.results)) {
         throw new Error('The validation response did not contain model results.')
@@ -285,9 +312,12 @@ function ValidationPage() {
       setValidationState('error')
     }
   }
-
-  useEffect(() => { loadValidation() }, [datasetId, targetColumn, problemType, identifierColumns])
-
+  useEffect(() => {
+    if (!datasetId || !targetColumn) {
+      setValidationData(null)
+      setValidationState('empty')
+    }
+  }, [datasetId, targetColumn])
   return (
     <div className="min-h-full px-4 py-6 text-white sm:px-6 lg:px-8">
       <div className="mx-auto max-w-7xl">
@@ -392,23 +422,152 @@ function ValidationPage() {
             </div>
           </div>
         </section>
-
         {/* =====================================================
-            VALIDATION STATE
+            MODEL SELECTION
         ===================================================== */}
+        <section
+          className="
+            mt-6
+            rounded-2xl
+            border
+            border-white/10
+            bg-white/[0.04]
+            p-5
+            sm:p-6
+          "
+        >
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.15em] text-[#B8B3FF]">
+              Model selection
+            </p>
 
-        <section className="mt-6">
-          {validationState === 'loading' && (
-            <LoadingState />
-          )}
+            <h2 className="mt-1 text-xl font-semibold text-white">
+              Models to validate
+            </h2>
 
-          {validationState === 'warning' && (
-            <WarningState />
-          )}
+            <p className="mt-1 text-sm text-white">
+              Select the models you want to validate. Only selected models will be trained.
+            </p>
+          </div>
 
-          {validationState === 'error' && (
-            <ErrorState onRetry={loadValidation} message={error} />
-          )}
+          <div className="mt-4 flex gap-3">
+            <button
+              type="button"
+              onClick={() => setSelectedModels(availableModels.map((model) => model.id))}
+              className="
+                rounded-lg
+                border border-[#756BFF]/25
+                bg-[#5148D8]/[0.08]
+                px-3 py-1.5
+                text-xs font-semibold
+                text-[#A69CFF]
+                transition
+                hover:bg-[#5148D8]/[0.18]
+              "
+            >
+              Select All
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setSelectedModels([])}
+              className="
+                rounded-lg
+                border border-white/[0.08]
+                bg-white/[0.03]
+                px-3 py-1.5
+                text-xs font-semibold
+                text-white
+                transition
+                hover:bg-white/[0.07]
+              "
+            >
+              Clear All
+            </button>
+          </div>
+
+          <div className="mt-4 grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
+            {availableModels.map((model) => {
+              const checked = selectedModels.includes(model.id)
+
+              return (
+                <label
+                  key={model.id}
+                  className={`
+                    flex cursor-pointer items-center gap-3 rounded-xl border px-4 py-3 transition
+                    ${
+                      checked
+                        ? 'border-[#756BFF]/40 bg-[#5148D8]/[0.12] text-white'
+                        : 'border-white/[0.07] bg-white/[0.02] text-white hover:border-[#756BFF]/20 hover:bg-[#5148D8]/[0.05]'
+                    }
+                  `}
+                >
+                  <input
+                    type="checkbox"
+                    checked={checked}
+                    onChange={() => {
+                      setSelectedModels((current) =>
+                        current.includes(model.id)
+                          ? current.filter((id) => id !== model.id)
+                          : [...current, model.id]
+                      )
+                    }}
+                  />
+
+                  <span className="text-sm font-semibold">
+                    {model.label}
+                  </span>
+                </label>
+              )
+            })}
+          </div>
+          <div className="mt-5 flex items-center justify-between gap-4">
+            <p className="text-sm text-white">
+              {selectedModels.length === 0
+                ? 'Select at least one model to continue.'
+                : `${selectedModels.length} model${selectedModels.length === 1 ? '' : 's'} selected.`}
+            </p>
+
+            <button
+              type="button"
+              onClick={loadValidation}
+              disabled={selectedModels.length === 0 || validationState === 'loading'}
+              className="
+                rounded-xl
+                bg-[#5B56E8]
+                px-5
+                py-2.5
+                text-sm
+                font-semibold
+                text-white
+                shadow-lg
+                transition
+                hover:bg-[#6863F0]
+                disabled:cursor-not-allowed
+                disabled:opacity-50
+              "
+            >
+              {validationState === 'loading' ? 'Running Validation...' : 'Run Validation'}
+            </button>
+          </div>
+                  </section>
+
+                  {/* =====================================================
+                      VALIDATION STATE
+                  ===================================================== */}
+
+                  <section className="mt-6">
+                    {validationState === 'loading' && (
+                      <LoadingState />
+                    )}
+
+                    {validationState === 'warning' && (
+                      <WarningState />
+                    )}
+
+                    {validationState === 'error' && (
+                      <ErrorState onRetry={loadValidation} message={error} />
+                    )}
         </section>
 
         {/* =====================================================
@@ -506,9 +665,16 @@ function ValidationPage() {
                         <td className="px-5 py-4">{result.model_name}</td>
                         <td className="px-5 py-4">{validationData.problem_type}</td>
                         <td className="px-5 py-4">
-                          {Object.entries(result.mean_metrics).map(([name, value]) => (
-                            <div key={name}>{name}: {Number(value).toFixed(4)}</div>
-                          ))}
+                          {Object.entries(result.mean_metrics).map(([name, value]) => {
+                            const stdValue = result.std_metrics?.[name]
+
+                            return (
+                              <div key={name}>
+                                {name}: {Number(value).toFixed(4)} ±{' '}
+                                {Number.isFinite(stdValue) ? stdValue.toFixed(4) : '—'}
+                              </div>
+                            )
+                          })}
                         </td>
                         <td className="px-5 py-4">Complete</td>
                       </tr>

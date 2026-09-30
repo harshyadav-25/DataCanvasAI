@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Query
 
 from app.core.dependencies import get_current_user
 from app.schemas.target import TargetProblemType
@@ -25,6 +25,7 @@ async def analyze_validation(
     target_column: str,
     problem_type: TargetProblemType,
     identifier_columns: list[str] | None = None,
+    model_names: list[str] | None = Query(default=None),
     n_splits: int = 5,
     current_user: dict = Depends(get_current_user),
 ) -> ValidationResponse:
@@ -36,6 +37,7 @@ async def analyze_validation(
         target_column=target_column,
         problem_type=problem_type,
         identifier_columns=identifier_columns,
+        model_names=model_names,
         n_splits=n_splits,
     )
 

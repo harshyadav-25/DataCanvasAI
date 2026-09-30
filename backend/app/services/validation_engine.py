@@ -1,6 +1,7 @@
 import numpy as np
 from app.services.preprocessing_engine import PreprocessingEngine
 
+
 from sklearn.ensemble import (
     HistGradientBoostingClassifier,
     HistGradientBoostingRegressor,
@@ -23,12 +24,38 @@ from sklearn.metrics import (
     roc_auc_score,
 )
 from sklearn.model_selection import KFold, StratifiedKFold
+from sklearn.pipeline import Pipeline
+from sklearn.preprocessing import StandardScaler
 
 from catboost import CatBoostClassifier, CatBoostRegressor
 from lightgbm import LGBMClassifier, LGBMRegressor
 from xgboost import XGBClassifier, XGBRegressor
 
 from app.schemas.target import TargetProblemType
+
+
+def standard_scale_steps() -> tuple:
+    """Fresh scaler instance so prepared estimators never share fitted state."""
+    return (("scaler", StandardScaler()),)
+
+
+def prepare_estimator(estimator, extra_steps: tuple | None = None):
+    """
+    Attach model-specific transforms to an estimator via sklearn Pipeline.
+
+    Extra steps are fitted as part of the estimator, so clone()+fit() on a
+    CV training fold cannot leak validation-fold statistics. evaluate_model()
+    stays model-agnostic: it only calls fit/predict on the prepared estimator.
+    """
+    if not extra_steps:
+        return estimator
+
+    return Pipeline(
+        steps=[
+            *extra_steps,
+            ("model", estimator),
+        ]
+    )
 
 
 def get_models(problem_type: TargetProblemType) -> dict:
@@ -49,9 +76,12 @@ def get_models(problem_type: TargetProblemType) -> dict:
             "hist_gradient_boosting": HistGradientBoostingClassifier(
                 random_state=42,
             ),
-            "logistic_regression": LogisticRegression(
-                max_iter=1000,
-                random_state=42,
+            "logistic_regression": prepare_estimator(
+                LogisticRegression(
+                    max_iter=1000,
+                    random_state=42,
+                ),
+                extra_steps=standard_scale_steps(),
             ),
         }
 
@@ -71,8 +101,14 @@ def get_models(problem_type: TargetProblemType) -> dict:
             "hist_gradient_boosting": HistGradientBoostingRegressor(
                 random_state=42,
             ),
-            "linear_regression": LinearRegression(),
-            "ridge": Ridge(),
+            "linear_regression": prepare_estimator(
+                LinearRegression(),
+                extra_steps=standard_scale_steps(),
+            ),
+            "ridge": prepare_estimator(
+                Ridge(),
+                extra_steps=standard_scale_steps(),
+            ),
         }
 
     raise ValueError(f"Unsupported problem type: {problem_type}")
@@ -350,11 +386,20 @@ def cross_validate_with_preprocessing(
     problem_type: TargetProblemType,
     identifier_columns: list[str] | None = None,
     n_splits: int = 5,
+    model_names: list[str] | None = None,
 ) -> dict:
     """
     Perform cross-validation with preprocessing fitted separately
     inside each fold to prevent data leakage.
+
+    Optimization: preprocessing is fit once per fold, then all selected
+    models are evaluated on the same preprocessed arrays.  This avoids
+    redundant preprocessing work when multiple models are compared.
+
+    Model instances are freshly cloned per fold so that estimator state
+    never leaks across folds.
     """
+    from sklearn.base import clone as sklearn_clone
 
     identifier_columns = identifier_columns or []
 
@@ -362,6 +407,19 @@ def cross_validate_with_preprocessing(
     y = dataframe[target_column].to_numpy()
 
     models = get_models(problem_type)
+    if model_names is not None:
+        unknown_models = set(model_names) - models.keys()
+        if unknown_models:
+            raise ValueError(
+                f"Unsupported models for {problem_type.value}: "
+                f"{', '.join(sorted(unknown_models))}"
+            )
+        models = {
+            model_name: models[model_name]
+            for model_name in model_names
+        }
+        if not models:
+            raise ValueError("At least one model must be selected")
 
     safe_n_splits = get_safe_n_splits(
         y,
@@ -374,33 +432,38 @@ def cross_validate_with_preprocessing(
         safe_n_splits,
     )
 
-    results = {}
+    # Initialise per-model fold_metrics accumulators
+    fold_metrics_per_model: dict[str, list] = {
+        model_name: [] for model_name in models
+    }
 
-    for model_name, model in models.items():
-        fold_metrics = []
+    # ----------------------------------------------------------------
+    # FOLD-FIRST loop:
+    #   For each fold → fit preprocessing ONCE → train all models
+    # This avoids repeating preprocessing for every model independently.
+    # Preprocessing is still fitted only on the train split — no leakage.
+    # ----------------------------------------------------------------
+    for train_indices, test_indices in cv.split(X, y):
+        train_dataframe = dataframe.iloc[train_indices].copy()
+        test_dataframe = dataframe.iloc[test_indices].copy()
 
-        for train_indices, test_indices in cv.split(X, y):
-            train_dataframe = dataframe.iloc[train_indices].copy()
-            test_dataframe = dataframe.iloc[test_indices].copy()
+        preprocessing_engine = PreprocessingEngine(
+            target_column=target_column,
+            identifier_columns=identifier_columns,
+        )
 
-            preprocessing_engine = PreprocessingEngine(
-                target_column=target_column,
-                identifier_columns=identifier_columns,
-            )
+        # Fit on train only, transform both splits
+        X_train = preprocessing_engine.fit_transform(train_dataframe)
+        X_test = preprocessing_engine.transform(test_dataframe)
 
-            X_train = preprocessing_engine.fit_transform(
-                train_dataframe
-            )
+        y_train = train_dataframe[target_column].to_numpy()
+        y_test = test_dataframe[target_column].to_numpy()
 
-            X_test = preprocessing_engine.transform(
-                test_dataframe
-            )
-
-            y_train = train_dataframe[target_column].to_numpy()
-            y_test = test_dataframe[target_column].to_numpy()
-
+        # Evaluate every selected model on this fold's preprocessed data
+        for model_name, model_template in models.items():
+            model_instance = sklearn_clone(model_template)
             metrics = evaluate_model(
-                model,
+                model_instance,
                 X_train,
                 X_test,
                 y_train,
@@ -408,18 +471,21 @@ def cross_validate_with_preprocessing(
                 problem_type,
             )
 
-            fold_metrics.append(metrics)
+            fold_metrics_per_model[model_name].append(metrics)
 
-        metric_names = get_metric_names(problem_type)
+    # Aggregate fold results into mean / std per model
+    metric_names = get_metric_names(problem_type)
+    results = {}
 
+    for model_name, fold_metrics in fold_metrics_per_model.items():
         mean_metrics = {}
         std_metrics = {}
 
         for metric_name in metric_names:
             values = [
-                metrics[metric_name]
-                for metrics in fold_metrics
-                if not np.isnan(metrics[metric_name])
+                fold[metric_name]
+                for fold in fold_metrics
+                if not np.isnan(fold[metric_name])
             ]
 
             if values:
