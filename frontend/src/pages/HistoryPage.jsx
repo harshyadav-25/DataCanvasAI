@@ -1,8 +1,8 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
+import { getHistoryStorageKey, loadActivityHistory } from '../services/history'
 
 const filters = [
   'All',
-  'Running',
   'Completed',
   'Failed',
 ]
@@ -30,8 +30,8 @@ function EmptyState() {
       </h2>
 
       <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-[#A7AFC3]">
-        Experiment and analysis history will appear here when real
-        backend results become available.
+        Successful and failed backend operations will appear here after they
+        have been run from this browser.
       </p>
     </div>
   )
@@ -52,37 +52,63 @@ function SummaryCard({ label, value }) {
 }
 
 function HistoryItem({ item }) {
+  const completedAt = new Date(item.completedAt)
+
   return (
     <div className="rounded-2xl border border-[#343C53] bg-[#10162A]/80 p-5 backdrop-blur-xl">
       <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
 
         <div>
           <p className="text-[11px] font-semibold uppercase tracking-wide text-[#8F7CFF]">
-            Experiment
+            {item.operation || 'Backend operation'}
           </p>
 
           <h3 className="mt-1 text-base font-semibold text-white">
-            {item.treatment || 'Not available'}
+            {item.modelName
+              ? `${item.operation}: ${item.modelName}`
+              : item.operation || 'Backend operation'}
           </h3>
 
           <p className="mt-2 text-sm text-[#A7AFC3]">
-            {item.source || 'Source not available'}
+            Dataset: {item.datasetId || 'Not associated'}
           </p>
         </div>
 
-        <span className="w-fit rounded-full border border-[#343C53] bg-[#12192B] px-3 py-1 text-[11px] font-semibold text-[#A7AFC3]">
+        <span className={`w-fit rounded-full border px-3 py-1 text-[11px] font-semibold ${
+          item.status === 'Failed'
+            ? 'border-red-400/20 bg-red-500/[0.08] text-red-200'
+            : 'border-[#343C53] bg-[#12192B] text-[#A7AFC3]'
+        }`}>
           {item.status || 'Not available'}
         </span>
       </div>
 
-      <div className="mt-5 rounded-xl border border-[#252D42] bg-[#0A1020]/60 p-4">
-        <p className="text-[11px] font-semibold uppercase tracking-wide text-[#8F7CFF]">
-          Created
-        </p>
-
-        <p className="mt-2 text-sm text-[#A7AFC3]">
-          {item.createdAt || 'Not available'}
-        </p>
+      <div className="mt-5 grid gap-3 rounded-xl border border-[#252D42] bg-[#0A1020]/60 p-4 sm:grid-cols-2">
+        {[
+          ['Filename', item.filename],
+          ['Target', item.targetColumn],
+          ['Problem type', item.problemType],
+          ['Model', item.modelName],
+          ['Recorded at', Number.isNaN(completedAt.getTime()) ? '' : completedAt.toLocaleString()],
+          ['Source', item.source],
+        ].map(([label, value]) => (
+          <div key={label}>
+            <p className="text-[11px] font-semibold uppercase tracking-wide text-[#8F7CFF]">
+              {label}
+            </p>
+            <p className="mt-1 break-all text-sm text-[#A7AFC3]">
+              {value || 'Not provided'}
+            </p>
+          </div>
+        ))}
+        {item.errorMessage && (
+          <div className="sm:col-span-2">
+            <p className="text-[11px] font-semibold uppercase tracking-wide text-red-200">
+              Error
+            </p>
+            <p className="mt-1 text-sm text-red-200/80">{item.errorMessage}</p>
+          </div>
+        )}
       </div>
     </div>
   )
@@ -90,10 +116,27 @@ function HistoryItem({ item }) {
 
 export default function HistoryPage() {
   const [activeFilter, setActiveFilter] = useState('All')
+  const [history, setHistory] = useState([])
+  const [historyState, setHistoryState] = useState('loading')
+  const [error, setError] = useState('')
 
-  // Real backend history data will be connected later.
-  // No demo or dummy history entries are used.
-  const history = []
+  const loadHistory = () => {
+    setHistoryState('loading')
+    setError('')
+    try {
+      setHistory(loadActivityHistory(getHistoryStorageKey()))
+      setHistoryState('success')
+    } catch (loadError) {
+      console.error('Unable to load activity history:', loadError)
+      setError('Saved activity history could not be read from this browser.')
+      setHistoryState('error')
+    }
+  }
+
+  useEffect(() => {
+    const frame = window.requestAnimationFrame(loadHistory)
+    return () => window.cancelAnimationFrame(frame)
+  }, [])
 
   const filteredHistory =
     activeFilter === 'All'
@@ -102,13 +145,8 @@ export default function HistoryPage() {
 
   const summary = {
     all: history.length,
-    running: history.filter((item) => item.status === 'Running').length,
     completed: history.filter((item) => item.status === 'Completed').length,
     failed: history.filter((item) => item.status === 'Failed').length,
-  }
-
-  const handleRetry = () => {
-    console.log('Retry history request')
   }
 
   return (
@@ -141,20 +179,19 @@ export default function HistoryPage() {
               </h1>
 
               <p className="mt-2 max-w-2xl text-sm leading-6 text-[#A7AFC3]">
-                Review previous experiments and analysis runs when real
-                history data is available.
+                Review backend operations recorded locally for this account
+                in this browser.
               </p>
             </div>
 
-            <div className="w-fit rounded-2xl border border-[#6557D8]/30 bg-[#11172A]/80 px-4 py-3 backdrop-blur-xl">
-              <p className="text-[11px] font-semibold uppercase tracking-wide text-[#8F7CFF]">
-                History status
-              </p>
-
-              <p className="mt-1 text-sm font-semibold text-[#A7AFC3]">
-                Waiting for results
-              </p>
-            </div>
+            <button
+              type="button"
+              onClick={loadHistory}
+              disabled={historyState === 'loading'}
+              className="w-fit rounded-xl border border-[#6557D8]/30 bg-[#11172A]/80 px-4 py-3 text-sm font-semibold text-[#A7AFC3] backdrop-blur-xl disabled:opacity-50"
+            >
+              {historyState === 'loading' ? 'Refreshing…' : 'Refresh history'}
+            </button>
 
           </div>
         </section>
@@ -167,11 +204,6 @@ export default function HistoryPage() {
           <SummaryCard
             label="Total"
             value={summary.all}
-          />
-
-          <SummaryCard
-            label="Running"
-            value={summary.running}
           />
 
           <SummaryCard
@@ -219,12 +251,24 @@ export default function HistoryPage() {
             </h2>
 
             <p className="mt-1 text-sm text-[#8F98AD]">
-              Previous runs will be listed here when history data is
-              returned by the backend.
+              Entries are captured after backend requests complete. Dataset
+              context and timestamps are added by this browser where needed.
             </p>
           </div>
 
-          {filteredHistory.length === 0 ? (
+          {historyState === 'loading' ? (
+            <div role="status" className="rounded-2xl border border-[#343C53] bg-[#10162A]/80 px-6 py-14 text-center text-sm text-[#A7AFC3]">
+              Loading local activity history…
+            </div>
+          ) : historyState === 'error' ? (
+            <div role="alert" className="rounded-2xl border border-red-400/20 bg-red-500/[0.06] p-5">
+              <p className="font-semibold text-red-200">History could not be loaded</p>
+              <p className="mt-2 text-sm text-red-200/80">{error}</p>
+              <button type="button" onClick={loadHistory} className="mt-4 rounded-lg border border-red-300/20 px-4 py-2 text-sm font-semibold text-red-100">
+                Retry
+              </button>
+            </div>
+          ) : filteredHistory.length === 0 ? (
             <EmptyState />
           ) : (
             <div className="grid gap-5 xl:grid-cols-2">
@@ -238,10 +282,6 @@ export default function HistoryPage() {
           )}
         </section>
 
-        {/* =========================================
-            DATA INTEGRATION
-            ========================================= */}
-
         <section className="rounded-2xl border border-[#343C53] bg-[#10162A]/80 p-5 backdrop-blur-xl">
           <div className="flex items-start gap-3">
 
@@ -251,13 +291,19 @@ export default function HistoryPage() {
 
             <div>
               <h2 className="text-sm font-semibold text-white">
-                Data integration
+                History storage
               </h2>
 
               <p className="mt-1 text-sm leading-6 text-[#A7AFC3]">
-                History records will be populated through the future
-                backend history response. The frontend does not create
-                sample or fabricated records.
+                The backend does not currently provide a history endpoint or
+                persist analysis runs. This page stores successful and failed
+                backend operations in browser storage, scoped to the signed-in
+                account. Dataset IDs and filenames come from API responses
+                when available; target/problem type can come from the request
+                or saved analysis context. Recorded time is the local response
+                completion time. Entries survive refresh, logout/login, and
+                backend restarts on this browser, but not browser-storage
+                clearing or use on another device.
               </p>
             </div>
 
