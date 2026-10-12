@@ -9,10 +9,17 @@ from sklearn.metrics import (
     precision_score,
     recall_score,
 )
+import inspect
+import warnings
+
 import numpy as np
 import pandas as pd
 
-from sklearn.linear_model import LogisticRegression
+from sklearn.linear_model import LogisticRegression, LinearRegression, Ridge
+from sklearn.pipeline import Pipeline
+from sklearn.preprocessing import StandardScaler
+from sklearn.base import clone as sklearn_clone
+from sklearn.exceptions import ConvergenceWarning
 
 from app.schemas.target import TargetProblemType
 from app.services.validation_engine import (
@@ -25,6 +32,8 @@ from app.services.validation_engine import (
     cross_validate_models,
     get_safe_n_splits,
     cross_validate_with_preprocessing,
+    prepare_estimator,
+    standard_scale_steps,
 )
 import pytest
 
@@ -490,3 +499,160 @@ class SpyPreprocessingEngine(original_engine):
         self.training_transform = False
 
         return super().transform(dataframe)
+
+
+def test_prepare_estimator_without_extra_steps_returns_estimator():
+    estimator = LogisticRegression(max_iter=1000, random_state=42)
+
+    assert prepare_estimator(estimator) is estimator
+    assert prepare_estimator(estimator, extra_steps=()) is estimator
+
+
+def test_prepare_estimator_wraps_extra_steps_in_pipeline():
+    estimator = LogisticRegression(max_iter=1000, random_state=42)
+    prepared = prepare_estimator(
+        estimator,
+        extra_steps=standard_scale_steps(),
+    )
+
+    assert isinstance(prepared, Pipeline)
+    assert list(prepared.named_steps) == ["scaler", "model"]
+    assert isinstance(prepared.named_steps["scaler"], StandardScaler)
+    assert prepared.named_steps["model"] is estimator
+
+
+def test_linear_models_use_standard_scaling_pipelines():
+    classification_models = get_models(TargetProblemType.CLASSIFICATION)
+    regression_models = get_models(TargetProblemType.REGRESSION)
+
+    logistic = classification_models["logistic_regression"]
+    linear = regression_models["linear_regression"]
+    ridge = regression_models["ridge"]
+
+    for prepared in (logistic, linear, ridge):
+        assert isinstance(prepared, Pipeline)
+        assert isinstance(prepared.named_steps["scaler"], StandardScaler)
+
+    assert isinstance(
+        logistic.named_steps["model"],
+        LogisticRegression,
+    )
+    assert logistic.named_steps["model"].max_iter == 1000
+    assert isinstance(linear.named_steps["model"], LinearRegression)
+    assert isinstance(ridge.named_steps["model"], Ridge)
+
+
+def test_tree_models_are_not_scaled():
+    classification_models = get_models(TargetProblemType.CLASSIFICATION)
+    regression_models = get_models(TargetProblemType.REGRESSION)
+
+    for model_name in (
+        "catboost",
+        "xgboost",
+        "lightgbm",
+        "hist_gradient_boosting",
+    ):
+        assert not isinstance(classification_models[model_name], Pipeline)
+        assert not isinstance(regression_models[model_name], Pipeline)
+
+
+def test_prepared_estimators_do_not_share_scaler_instances():
+    models = get_models(TargetProblemType.REGRESSION)
+
+    linear_scaler = models["linear_regression"].named_steps["scaler"]
+    ridge_scaler = models["ridge"].named_steps["scaler"]
+
+    assert linear_scaler is not ridge_scaler
+
+
+def test_linear_model_scaler_is_fitted_on_train_only():
+    X_train = np.array(
+        [
+            [0.0, 10.0],
+            [10.0, 20.0],
+            [20.0, 30.0],
+            [30.0, 40.0],
+        ],
+        dtype=float,
+    )
+    y_train = np.array([0, 0, 1, 1])
+    X_test = np.array(
+        [
+            [1000.0, 5000.0],
+            [2000.0, 8000.0],
+        ],
+        dtype=float,
+    )
+
+    model = sklearn_clone(
+        get_models(TargetProblemType.CLASSIFICATION)["logistic_regression"]
+    )
+    model.fit(X_train, y_train)
+    model.predict(X_test)
+
+    scaler = model.named_steps["scaler"]
+    assert scaler.mean_ == pytest.approx(X_train.mean(axis=0))
+    assert scaler.scale_ == pytest.approx(X_train.std(axis=0, ddof=0))
+
+
+def test_logistic_regression_converges_on_heterogeneous_feature_scales():
+    rng = np.random.default_rng(42)
+    n_samples = 240
+    X = np.column_stack(
+        [
+            rng.normal(0.0, 1.0, n_samples),
+            rng.normal(0.0, 1000.0, n_samples),
+            rng.normal(250.0, 40.0, n_samples),
+        ]
+    )
+    y = (X[:, 0] + (X[:, 1] / 1000.0) > 0.15).astype(int)
+
+    model = sklearn_clone(
+        get_models(TargetProblemType.CLASSIFICATION)["logistic_regression"]
+    )
+
+    with warnings.catch_warnings():
+        warnings.simplefilter("error", ConvergenceWarning)
+        model.fit(X, y)
+
+    assert hasattr(model, "predict")
+    predictions = model.predict(X)
+    assert predictions.shape == (n_samples,)
+
+
+def test_evaluate_model_does_not_branch_on_model_names():
+    source = inspect.getsource(evaluate_model)
+
+    assert "logistic_regression" not in source
+    assert "linear_regression" not in source
+    assert "lightgbm" not in source
+    assert "if model_name" not in source
+
+
+def test_fold_first_cv_keeps_metrics_for_scaled_logistic_regression():
+    dataframe = pd.DataFrame(
+        {
+            "small": [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8],
+            "large": [1000, 2000, 1500, 2500, 1800, 2200, 1700, 2100],
+            "Target": [0, 1, 0, 1, 0, 1, 0, 1],
+        }
+    )
+
+    results = cross_validate_with_preprocessing(
+        dataframe=dataframe,
+        target_column="Target",
+        problem_type=TargetProblemType.CLASSIFICATION,
+        n_splits=2,
+        model_names=["logistic_regression", "lightgbm"],
+    )
+
+    assert set(results) == {"logistic_regression", "lightgbm"}
+
+    for result in results.values():
+        assert len(result["fold_metrics"]) == 2
+        assert "accuracy" in result["mean_metrics"]
+        assert "accuracy" in result["std_metrics"]
+        assert "f1" in result["mean_metrics"]
+        for fold in result["fold_metrics"]:
+            assert "accuracy" in fold
+            assert "f1" in fold

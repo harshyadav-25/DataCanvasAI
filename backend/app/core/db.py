@@ -19,10 +19,10 @@ async def connect_to_mongo():
         # Verify connection by pinging the server
         await db_client.admin.command("ping")
 
-        print(f"✓ Connected to MongoDB: {settings.MONGODB_DB_NAME}")
+        print(f"Connected to MongoDB: {settings.MONGODB_DB_NAME}")
 
     except Exception as e:
-        print(f"✗ Failed to connect to MongoDB: {e}")
+        print(f"Failed to connect to MongoDB: {e}")
         raise
 
 
@@ -32,7 +32,7 @@ async def close_mongo_connection():
 
     if db_client:
         db_client.close()
-        print("✓ MongoDB connection closed")
+        print("MongoDB connection closed")
 
 
 def get_db() -> Any:

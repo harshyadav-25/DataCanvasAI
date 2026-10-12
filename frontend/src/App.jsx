@@ -1,5 +1,4 @@
-
-import { BrowserRouter, Route, Routes } from 'react-router-dom'
+import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
 
 import Layout from './components/layout/Layout'
 import ProtectedRoute from './components/auth/ProtectedRoute'
@@ -21,6 +20,8 @@ import HistoryPage from './pages/HistoryPage'
 import ReadinessPage from './pages/ReadinessPage'
 import PipelinePage from './pages/PipelinePage'
 import ReportPage from './pages/ReportPage'
+import VisualizationPage from './pages/VisualizationPage'
+import ModelingPage from './pages/ModelingPage'
 
 function App() {
   return (
@@ -33,7 +34,13 @@ function App() {
 
         <Route
           path="/"
-          element={<Landing />}
+          element={
+            localStorage.getItem('datacanvas_access_token') ? (
+              <Navigate to="/dashboard" replace />
+            ) : (
+              <Landing />
+            )
+          }
         />
 
         {/* =========================================
@@ -246,9 +253,7 @@ function App() {
           element={
             <ProtectedRoute>
               <Layout>
-                <div className="p-6 text-white">
-                  Visualization
-                </div>
+                <VisualizationPage />
               </Layout>
             </ProtectedRoute>
           }
@@ -261,9 +266,7 @@ function App() {
           element={
             <ProtectedRoute>
               <Layout>
-                <div className="p-6 text-white">
-                  Modeling
-                </div>
+                <ModelingPage />
               </Layout>
             </ProtectedRoute>
           }

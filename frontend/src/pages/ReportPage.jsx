@@ -124,7 +124,12 @@ export default function ReportPage() {
               <div className="mt-4 space-y-3">
                 {report.key_findings.map((finding) => (
                   <div key={finding.title} className="rounded-xl border border-white/10 p-4">
-                    <p className="font-semibold">{finding.title}</p>
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <p className="font-semibold">{finding.title}</p>
+                      <span className="rounded-full border border-white/10 bg-white/[0.04] px-2.5 py-1 text-[11px] font-semibold text-[#A7AFC3]">
+                        {finding.severity}
+                      </span>
+                    </div>
                     <p className="mt-1 text-sm text-[#A7AFC3]">{finding.explanation}</p>
                   </div>
                 ))}
