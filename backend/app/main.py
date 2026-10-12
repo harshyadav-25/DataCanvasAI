@@ -7,6 +7,8 @@ from app.api.experiments import router as experiments_router
 from app.api.pipeline import router as pipeline_router
 from app.api.profiling import router as profiling_router
 from app.api.validation import router as validation_router
+from app.api.visualization import router as visualization_router
+from app.api.modeling import router as modeling_router
 
 from app.services.dataset_loader import load_dataset
 from app.api.risks import router as risks_router
@@ -44,7 +46,10 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173"],
+    allow_origins=[
+        "http://localhost:5173",
+        "http://127.0.0.1:5173",
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -76,6 +81,8 @@ app.include_router(preprocessing_router)
 app.include_router(experiments_router)
 app.include_router(pipeline_router)
 app.include_router(validation_router)
+app.include_router(visualization_router)
+app.include_router(modeling_router)
 app.include_router(profiling_router)
 @app.exception_handler(UnsupportedFileTypeError)
 async def unsupported_file_type_handler(

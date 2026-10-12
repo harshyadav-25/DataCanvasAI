@@ -301,9 +301,10 @@ function SummaryCard({ label, value, icon }) {
 
 function RiskCard({ risk, onInvestigate }) {
   const severityStyles = {
-    High: 'border-[#FF6B6B]/30 bg-[#FF5C5C]/10 text-[#FF8585]',
-    Medium: 'border-[#F6C453]/30 bg-[#F6C453]/10 text-[#F6D477]',
-    Low: 'border-[#55D68A]/30 bg-[#55D68A]/10 text-[#73E5A2]',
+    CRITICAL: 'border-[#FF6B6B]/30 bg-[#FF5C5C]/10 text-[#FF8585]',
+    HIGH: 'border-[#FF6B6B]/30 bg-[#FF5C5C]/10 text-[#FF8585]',
+    MEDIUM: 'border-[#F6C453]/30 bg-[#F6C453]/10 text-[#F6D477]',
+    LOW: 'border-[#55D68A]/30 bg-[#55D68A]/10 text-[#73E5A2]',
   }
 
   const severityStyle =

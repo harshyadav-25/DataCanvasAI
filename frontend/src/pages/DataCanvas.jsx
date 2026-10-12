@@ -4,7 +4,9 @@ import { useAnalysis } from '../context/AnalysisContext'
 import StateMessage from '../components/common/StateMessage'
 
 function DataCanvas() {
-  const [selectedAction, setSelectedAction] = useState(null)
+  const [simulationResult, setSimulationResult] = useState(null)
+  const [simulatingColumn, setSimulatingColumn] = useState('')
+  const [simulationError, setSimulationError] = useState('')
   const { datasetId, targetColumn } = useAnalysis()
   const [preprocessing, setPreprocessing] = useState(null)
   const [state, setState] = useState('loading')
@@ -24,33 +26,60 @@ function DataCanvas() {
       setState('error')
     }
   }
+  useEffect(() => {
+    loadPreprocessing()
+  }, [datasetId, targetColumn])
 
-  useEffect(() => { loadPreprocessing() }, [datasetId, targetColumn])
 
-  const columns = preprocessing?.feature_names?.map((name) => ({
-    id: name,
-    name,
-    dataType: preprocessing.feature_groups?.numeric?.includes(name)
-      ? 'numeric'
-      : 'categorical',
-  })) || []
+  const columns = [
+    ...(preprocessing?.feature_groups?.numeric || []).map((name) => ({
+      id: name,
+      name,
+      dataType: 'numeric',
+    })),
+    ...(preprocessing?.feature_groups?.categorical || []).map((name) => ({
+      id: name,
+      name,
+      dataType: 'categorical',
+    })),
+    ...(preprocessing?.feature_groups?.datetime || []).map((name) => ({
+      id: name,
+      name,
+      dataType: 'datetime',
+    })),
+  ]
 
-  const handleAction = async (action, column) => {
+  const handleAction = async (action, column, dataType) => {
     if (action === 'simulate' && datasetId && column) {
+      if (simulatingColumn) {
+        return
+      }
+
+      setSimulationError('')
+      setSimulationResult(null)
+      setSimulatingColumn(column)
+
       try {
         const result = await runSimulation(datasetId, {
           column,
-          transformation: 'MEDIAN_IMPUTATION',
+          transformation:
+            dataType === 'numeric'
+              ? 'MEDIAN_IMPUTATION'
+              : 'MOST_FREQUENT_IMPUTATION',
         })
-        setSelectedAction(
-          `${column}: ${result.missing_values_before} missing values before, ${result.missing_values_after} after`,
+        setSimulationResult(
+          `${column} (${result.transformation}): ${result.missing_values_before} missing values before, ${result.missing_values_after} after`,
         )
       } catch (requestError) {
-        setError(requestError.userMessage || 'Unable to run simulation.')
+        setSimulationError(
+          requestError.userMessage || 'Unable to run simulation.',
+        )
+      } finally {
+        setSimulatingColumn('')
       }
       return
     }
-    setSelectedAction(action)
+    setSimulationResult(action)
   }
 
   return (
@@ -94,6 +123,13 @@ function DataCanvas() {
         {state === 'loading' && <StateMessage type="loading" title="Loading preprocessing analysis" />}
         {state === 'error' && <StateMessage type="error" title="Unable to load preprocessing" message={error} actionLabel="Retry" onAction={loadPreprocessing} />}
         {state === 'empty' && <StateMessage type="empty" title="Target configuration required" message="Select a target column in Overview before preprocessing." />}
+        {simulationError && (
+          <StateMessage
+            type="error"
+            title="Unable to run simulation"
+            message={simulationError}
+          />
+        )}
 
         {/* Dataset Summary */}
         <section className="grid grid-cols-2 gap-4 xl:grid-cols-4">
@@ -175,11 +211,10 @@ function DataCanvas() {
                 <ColumnCard
                   key={column.id}
                   column={column}
-                  onInvestigate={() =>
-                    handleAction(`Investigate: ${column.name}`)
-                  }
+                  dataType={column.dataType}
+                  isSimulating={simulatingColumn === column.name}
                   onSimulate={() =>
-                    handleAction('simulate', column.name)
+                    handleAction('simulate', column.name, column.dataType)
                   }
                 />
               ))}
@@ -188,33 +223,29 @@ function DataCanvas() {
         </section>
 
         {/* Temporary UI interaction */}
-        {selectedAction && (
+        {simulationResult && (
           <div className="fixed right-5 bottom-5 z-50 w-[min(370px,calc(100vw-2rem))] rounded-2xl border border-[#6557D8]/40 bg-[#0D1324]/95 p-5 shadow-2xl backdrop-blur-xl">
             <div className="flex items-start justify-between gap-4">
               <div>
                 <p className="text-xs font-semibold uppercase tracking-wide text-[#8F7CFF]">
-                  UI interaction
+                  Simulation result
                 </p>
 
                 <h3 className="mt-1 text-base font-bold text-white">
-                  {selectedAction}
+                  {simulationResult}
                 </h3>
               </div>
 
               <button
                 type="button"
-                onClick={() => setSelectedAction(null)}
+                onClick={() => setSimulationResult(null)}
                 className="text-xl text-[#69738B] transition hover:text-white"
                 aria-label="Close"
               >
-                ×
+                x
+              
               </button>
             </div>
-
-            <p className="mt-4 text-xs leading-5 text-[#727C94]">
-              This action is currently UI-only and will be connected to the
-              backend after the API contract is finalized.
-            </p>
           </div>
         )}
       </div>
@@ -246,7 +277,8 @@ function SummaryCard({ label, value }) {
 
 function ColumnCard({
   column,
-  onInvestigate,
+  dataType,
+  isSimulating,
   onSimulate,
 }) {
   return (
@@ -260,7 +292,7 @@ function ColumnCard({
             </h3>
 
             <span className="rounded-md border border-[#6155D9]/30 bg-[#6D5DF6]/10 px-2 py-1 text-[11px] font-semibold text-[#9A8EFF]">
-              {column.dataType}
+              {dataType}
             </span>
           </div>
         </div>
@@ -276,15 +308,17 @@ function ColumnCard({
         </p>
 
         <p className="mt-2 text-sm leading-6 text-[#A7AFC3]">
-          {column.dataType === 'numeric'
-            ? 'This feature is handled by the backend numeric preprocessing pipeline.'
-            : 'This feature is handled by the backend categorical preprocessing pipeline.'}
+          {dataType === 'numeric'
+          ? 'This source column is handled by the backend numeric preprocessing pipeline.'
+          : dataType === 'datetime'
+            ? 'This source column is converted into calendar features by the backend datetime preprocessing pipeline.'
+            : 'This source column is handled by the backend categorical preprocessing pipeline.'}
         </p>
       </div>
 
       <div className="mt-4 rounded-xl border border-[#6557D8]/20 bg-[#6D5DF6]/5 p-4">
         <p className="text-[11px] font-bold uppercase tracking-wide text-[#9183FF]">
-          Generated feature
+          Original dataset column
         </p>
 
         <p className="mt-2 text-sm leading-6 text-[#A7AFC3]">
@@ -308,20 +342,14 @@ function ColumnCard({
 
       {/* Actions */}
       <div className="mt-5 flex flex-wrap gap-3">
-        <button
-          type="button"
-          onClick={onInvestigate}
-          className="rounded-lg bg-linear-to-r from-[#5B4BE8] to-[#735DFF] px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-[#5B4BE8]/20 transition hover:-translate-y-0.5"
-        >
-          Investigate
-        </button>
 
         <button
           type="button"
           onClick={onSimulate}
+          disabled={isSimulating}
           className="rounded-lg border border-[#30384E] bg-[#11172A] px-4 py-2.5 text-sm font-semibold text-[#D7DBE6] transition hover:border-[#5A50C8] hover:bg-[#171E34]"
         >
-          Simulate
+          {isSimulating ? 'Simulating...' : 'Simulate'}
         </button>
       </div>
     </article>

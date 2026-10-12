@@ -16,6 +16,7 @@ function Recommendations() {
       return
     }
     setState('loading')
+    setError('')
     try {
       const riskResponse = await analyzeRisks(datasetId, targetColumn || undefined)
       setRecommendations(await generateRecommendations(riskResponse.findings || []))
@@ -27,6 +28,12 @@ function Recommendations() {
   }
 
   useEffect(() => { loadRecommendations() }, [datasetId, targetColumn])
+
+  const highPriorityCount = recommendations.filter(
+    (recommendation) =>
+      recommendation.priority === 'HIGH' ||
+      recommendation.priority === 'CRITICAL',
+  ).length
 
   return (
     <div className="relative min-h-screen overflow-hidden rounded-3xl bg-[#070B16] px-4 py-6 text-white sm:px-6 lg:px-8">
@@ -69,7 +76,10 @@ function Recommendations() {
               </p>
 
               <p className="mt-1 text-sm font-semibold text-[#A7AFC3]">
-                Waiting for results
+                {state === 'loading' && 'Loading'}
+                {state === 'success' && 'Complete'}
+                {state === 'error' && 'Error'}
+                {state === 'empty' && 'Dataset required'}
               </p>
             </div>
 
@@ -84,19 +94,27 @@ function Recommendations() {
 
           <SummaryCard
             label="Recommendations"
-            value="—"
+            value={state === 'success' ? recommendations.length : '—'}
             icon="R"
           />
 
           <SummaryCard
             label="High priority"
-            value="—"
+            value={state === 'success' ? highPriorityCount : '—'}
             icon="H"
           />
 
           <SummaryCard
             label="Action status"
-            value="Pending"
+            value={
+              state === 'success'
+                ? recommendations.length > 0
+                  ? 'Ready'
+                  : 'No actions'
+                : state === 'error'
+                  ? 'Error'
+                  : 'Pending'
+            }
             icon="!"
           />
 
